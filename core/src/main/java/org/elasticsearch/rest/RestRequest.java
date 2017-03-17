@@ -76,8 +76,14 @@ public abstract class RestRequest implements ToXContent.Params {
             this.rawPath = uri;
         } else {
             this.rawPath = uri.substring(0, pathEndPos);
-            // If the user passes a single % symbol to the query, replace it with %25
-            String percentUri = uri.replace("%", "%25");
+            // If the query ends with a %, change it to %25 rather than trying to resolve the encoding.
+            if (uri.substring(uri.length() - 1).equals("%"){
+                String percentUri = uri + "25";
+            }
+            else
+            {
+                String percentUri = uri;
+            }
             RestUtils.decodeQueryString(percentUri, pathEndPos + 1, params);
         }
         this.params = params;
