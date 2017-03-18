@@ -1,6 +1,7 @@
 [[indices-update-settings]]
 == Update Indices Settings
 
+
 Change specific index level settings in real time.
 
 The REST endpoint is `/_settings` (to update all indices) or
@@ -21,6 +22,20 @@ PUT /twitter/_settings
 
 The list of per-index settings which can be updated dynamically on live
 indices can be found in <<index-modules>>.
+
+Elasticsearch versions 5.x gives the ability to reset index settings by assigning
+a null value to an index property. If you are not on version 5.x please navigate to
+the following link for <<setup-upgrade, setup upgrade>>.
+
+[source, js]
+--------------------------------------------------
+PUT /twitter/_settings
+{
+    "index" : {
+        "number_of_replicas": null
+    }
+}
+--------------------------------------------------
 
 [float]
 [[bulk]]
@@ -101,3 +116,11 @@ POST /twitter/_open
 --------------------------------------------------
 // CONSOLE
 // TEST[setup:twitter]
+
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+include::upgrade.asciidoc[]
+>>>>>>> 159af532a1... test Link update
+=======
+>>>>>>> 68a5fb5b73... Updating link and removing bottom reference
