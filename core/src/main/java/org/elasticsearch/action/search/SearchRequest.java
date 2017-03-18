@@ -21,6 +21,7 @@ package org.elasticsearch.action.search;
 
 import org.elasticsearch.action.ActionRequest;
 import org.elasticsearch.action.ActionRequestValidationException;
+import static org.elasticsearch.action.ValidateActions.addValidationError;
 import org.elasticsearch.action.IndicesRequest;
 import org.elasticsearch.action.support.IndicesOptions;
 import org.elasticsearch.common.Nullable;
@@ -100,9 +101,19 @@ public final class SearchRequest extends ActionRequest implements IndicesRequest
         this.source = source;
     }
 
+    /**
+     * Adds new validation exception to list of exception when size of scroll search is 0. Returns exception with message to throw.
+     */
     @Override
     public ActionRequestValidationException validate() {
-        return null;
+        //No instantiation of new ActionRequestValidationException yet as calling function checks for null.
+        ActionRequestValidationException vException = null;
+        //Only add this new validation exception when conditions are met (i.e. when a scroll search returns a size of 0.)
+        if ((scroll != null) && (source.size() == 0)) {
+            //Create this validation exception and add to existing list of validation exceptions
+            vException = addValidationError("Error: size is 0! Cannot use scroll search", null);
+        }
+        return vException;
     }
 
     /**
