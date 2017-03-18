@@ -312,7 +312,7 @@ public abstract class AbstractAsyncBulkByScrollAction<Request extends AbstractBu
             startNextScroll(thisBatchStartTime, 0);
             return;
         }
-        request.timeout(mainRequest.getTimeout());
+        request.timeout(mainRequest.getShardTimeout());
         request.waitForActiveShards(mainRequest.getWaitForActiveShards());
         if (logger.isDebugEnabled()) {
             logger.debug("sending [{}] entry, [{}] bulk request", request.requests().size(),

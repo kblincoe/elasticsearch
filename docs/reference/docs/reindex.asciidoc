@@ -511,7 +511,7 @@ POST _reindex
 === URL Parameters
 
 In addition to the standard parameters like `pretty`, the Reindex API also
-supports `refresh`, `wait_for_completion`, `wait_for_active_shards`, `timeout`, and
+supports `refresh`, `wait_for_completion`, `wait_for_active_shards`, `shard_timeout`, and
 `requests_per_second`.
 
 Sending the `refresh` url parameter will cause all indexes to which the request
@@ -528,7 +528,7 @@ Elasticsearch can reclaim the space it uses.
 
 `wait_for_active_shards` controls how many copies of a shard must be active
 before proceeding with the reindexing. See <<index-wait-for-active-shards,here>>
-for details. `timeout` controls how long each write request waits for unavailable
+for details. `shard_timeout` controls how long each write request waits for unavailable
 shards to become available. Both work exactly how they work in the
 <<docs-bulk,Bulk API>>.
 

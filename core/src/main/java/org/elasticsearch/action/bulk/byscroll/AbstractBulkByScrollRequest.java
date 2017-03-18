@@ -69,7 +69,7 @@ public abstract class AbstractBulkByScrollRequest<Self extends AbstractBulkByScr
     /**
      * Timeout to wait for the shards on to be available for each bulk request?
      */
-    private TimeValue timeout = ReplicationRequest.DEFAULT_TIMEOUT;
+    private TimeValue shardTimeout = ReplicationRequest.DEFAULT_TIMEOUT;
 
     /**
      * The number of shard copies that must be active before proceeding with the write.
@@ -231,15 +231,15 @@ public abstract class AbstractBulkByScrollRequest<Self extends AbstractBulkByScr
     /**
      * Timeout to wait for the shards on to be available for each bulk request?
      */
-    public TimeValue getTimeout() {
-        return timeout;
+    public TimeValue getShardTimeout() {
+        return shardTimeout;
     }
 
     /**
      * Timeout to wait for the shards on to be available for each bulk request?
      */
-    public Self setTimeout(TimeValue timeout) {
-        this.timeout = timeout;
+    public Self setShardTimeout(TimeValue shardTimeout) {
+        this.shardTimeout = shardTimeout;
         return self();
     }
 
@@ -361,7 +361,7 @@ public abstract class AbstractBulkByScrollRequest<Self extends AbstractBulkByScr
      * Setup a clone of this request with the information needed to process a slice of it.
      */
     protected Self doForSlice(Self request, TaskId slicingTask) {
-        request.setAbortOnVersionConflict(abortOnVersionConflict).setRefresh(refresh).setTimeout(timeout)
+        request.setAbortOnVersionConflict(abortOnVersionConflict).setRefresh(refresh).setShardTimeout(shardTimeout)
                 .setWaitForActiveShards(activeShardCount).setRetryBackoffInitialTime(retryBackoffInitialTime).setMaxRetries(maxRetries)
                 // Parent task will store result
                 .setShouldStoreResult(false)
@@ -397,7 +397,7 @@ public abstract class AbstractBulkByScrollRequest<Self extends AbstractBulkByScr
         abortOnVersionConflict = in.readBoolean();
         size = in.readVInt();
         refresh = in.readBoolean();
-        timeout = new TimeValue(in);
+        shardTimeout = new TimeValue(in);
         activeShardCount = ActiveShardCount.readFrom(in);
         retryBackoffInitialTime = new TimeValue(in);
         maxRetries = in.readVInt();
@@ -416,7 +416,7 @@ public abstract class AbstractBulkByScrollRequest<Self extends AbstractBulkByScr
         out.writeBoolean(abortOnVersionConflict);
         out.writeVInt(size);
         out.writeBoolean(refresh);
-        timeout.writeTo(out);
+        shardTimeout.writeTo(out);
         activeShardCount.writeTo(out);
         retryBackoffInitialTime.writeTo(out);
         out.writeVInt(maxRetries);

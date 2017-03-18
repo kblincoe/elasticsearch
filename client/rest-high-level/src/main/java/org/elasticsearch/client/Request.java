@@ -429,7 +429,7 @@ final class Request {
         }
 
         Params withTimeout(TimeValue timeout) {
-            return putParam("timeout", timeout);
+            return putParam("shard_timeout", timeout);
         }
 
         Params withVersion(long version) {

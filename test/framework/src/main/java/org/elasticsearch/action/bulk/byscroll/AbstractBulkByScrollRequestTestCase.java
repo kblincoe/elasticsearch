@@ -35,7 +35,7 @@ public abstract class AbstractBulkByScrollRequestTestCase<R extends AbstractBulk
         R original = newRequest();
         original.setAbortOnVersionConflict(randomBoolean());
         original.setRefresh(randomBoolean());
-        original.setTimeout(parseTimeValue(randomPositiveTimeValue(), "timeout"));
+        original.setShardTimeout(parseTimeValue(randomPositiveTimeValue(), "shard_timeout"));
         original.setWaitForActiveShards(
                 randomFrom(ActiveShardCount.ALL, ActiveShardCount.NONE, ActiveShardCount.ONE, ActiveShardCount.DEFAULT));
         original.setRetryBackoffInitialTime(parseTimeValue(randomPositiveTimeValue(), "retry_backoff_initial_time"));
@@ -50,7 +50,7 @@ public abstract class AbstractBulkByScrollRequestTestCase<R extends AbstractBulk
         R forSliced = original.forSlice(slicingTask, sliceRequest);
         assertEquals(original.isAbortOnVersionConflict(), forSliced.isAbortOnVersionConflict());
         assertEquals(original.isRefresh(), forSliced.isRefresh());
-        assertEquals(original.getTimeout(), forSliced.getTimeout());
+        assertEquals(original.getShardTimeout(), forSliced.getShardTimeout());
         assertEquals(original.getWaitForActiveShards(), forSliced.getWaitForActiveShards());
         assertEquals(original.getRetryBackoffInitialTime(), forSliced.getRetryBackoffInitialTime());
         assertEquals(original.getMaxRetries(), forSliced.getMaxRetries());
