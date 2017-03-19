@@ -84,6 +84,7 @@ public class MoreLikeThisQueryBuilder extends AbstractQueryBuilder<MoreLikeThisQ
     public static final int DEFAULT_MIN_TERM_FREQ = XMoreLikeThis.DEFAULT_MIN_TERM_FREQ;
     public static final int DEFAULT_MIN_DOC_FREQ = XMoreLikeThis.DEFAULT_MIN_DOC_FREQ;
     public static final int DEFAULT_MAX_DOC_FREQ = XMoreLikeThis.DEFAULT_MAX_DOC_FREQ;
+    public static final int DEFAULT_MAX_DOC_FREQ_PCT = XMoreLikeThis.DEFAULT_MAX_DOC_FREQ_PCT;
     public static final int DEFAULT_MIN_WORD_LENGTH = XMoreLikeThis.DEFAULT_MIN_WORD_LENGTH;
     public static final int DEFAULT_MAX_WORD_LENGTH = XMoreLikeThis.DEFAULT_MAX_WORD_LENGTH;
     public static final String DEFAULT_MINIMUM_SHOULD_MATCH = MoreLikeThisQuery.DEFAULT_MINIMUM_SHOULD_MATCH;
@@ -105,6 +106,7 @@ public class MoreLikeThisQueryBuilder extends AbstractQueryBuilder<MoreLikeThisQ
         ParseField MIN_TERM_FREQ = new ParseField("min_term_freq");
         ParseField MIN_DOC_FREQ = new ParseField("min_doc_freq");
         ParseField MAX_DOC_FREQ = new ParseField("max_doc_freq");
+        ParseField MAX_DOC_FREQ_PCT = new ParseField("max_doc_freq_pct");
         ParseField MIN_WORD_LENGTH = new ParseField("min_word_length", "min_word_len");
         ParseField MAX_WORD_LENGTH = new ParseField("max_word_length", "max_word_len");
         ParseField STOP_WORDS = new ParseField("stop_words");
@@ -127,6 +129,7 @@ public class MoreLikeThisQueryBuilder extends AbstractQueryBuilder<MoreLikeThisQ
     private int minTermFreq = DEFAULT_MIN_TERM_FREQ;
     private int minDocFreq = DEFAULT_MIN_DOC_FREQ;
     private int maxDocFreq = DEFAULT_MAX_DOC_FREQ;
+    private int maxDocFreqPct = DEFAULT_MAX_DOC_FREQ_PCT;
     private int minWordLength = DEFAULT_MIN_WORD_LENGTH;
     private int maxWordLength = DEFAULT_MAX_WORD_LENGTH;
     private String[] stopWords;
@@ -531,6 +534,7 @@ public class MoreLikeThisQueryBuilder extends AbstractQueryBuilder<MoreLikeThisQ
         minTermFreq = in.readVInt();
         minDocFreq = in.readVInt();
         maxDocFreq = in.readVInt();
+        maxDocFreqPct = in.readVInt();
         minWordLength = in.readVInt();
         maxWordLength = in.readVInt();
         stopWords = in.readOptionalStringArray();
@@ -552,6 +556,7 @@ public class MoreLikeThisQueryBuilder extends AbstractQueryBuilder<MoreLikeThisQ
         out.writeVInt(minTermFreq);
         out.writeVInt(minDocFreq);
         out.writeVInt(maxDocFreq);
+        out.writeVInt(maxDocFreqPct);
         out.writeVInt(minWordLength);
         out.writeVInt(maxWordLength);
         out.writeOptionalStringArray(stopWords);
@@ -648,6 +653,19 @@ public class MoreLikeThisQueryBuilder extends AbstractQueryBuilder<MoreLikeThisQ
 
     public int maxDocFreq() {
         return maxDocFreq;
+    }
+
+    public int maxDocFreqPct(){
+        return maxDocFreqPct;
+    }
+
+    /**
+     * Sets the maximum frequency (in percentage) in which words may appear. Words that occur in more than this many
+     * percentage of docs will be ignored. The default value is 100.
+     */
+    public MoreLikeThisQueryBuilder maxDocFreqPct(int maxDocFreqPct){
+        this.maxDocFreqPct = maxDocFreqPct;
+        return this;
     }
 
     /**
@@ -793,6 +811,7 @@ public class MoreLikeThisQueryBuilder extends AbstractQueryBuilder<MoreLikeThisQ
         builder.field(Field.MIN_TERM_FREQ.getPreferredName(), minTermFreq);
         builder.field(Field.MIN_DOC_FREQ.getPreferredName(), minDocFreq);
         builder.field(Field.MAX_DOC_FREQ.getPreferredName(), maxDocFreq);
+        builder.field(Field.MAX_DOC_FREQ_PCT.getPreferredName(), maxDocFreqPct);
         builder.field(Field.MIN_WORD_LENGTH.getPreferredName(), minWordLength);
         builder.field(Field.MAX_WORD_LENGTH.getPreferredName(), maxWordLength);
         if (stopWords != null) {
@@ -824,6 +843,7 @@ public class MoreLikeThisQueryBuilder extends AbstractQueryBuilder<MoreLikeThisQ
         int minTermFreq = MoreLikeThisQueryBuilder.DEFAULT_MIN_TERM_FREQ;
         int minDocFreq = MoreLikeThisQueryBuilder.DEFAULT_MIN_DOC_FREQ;
         int maxDocFreq = MoreLikeThisQueryBuilder.DEFAULT_MAX_DOC_FREQ;
+        int maxDocFreqPct = MoreLikeThisQueryBuilder.DEFAULT_MAX_DOC_FREQ_PCT;
         int minWordLength = MoreLikeThisQueryBuilder.DEFAULT_MIN_WORD_LENGTH;
         int maxWordLength = MoreLikeThisQueryBuilder.DEFAULT_MAX_WORD_LENGTH;
         List<String> stopWords = null;
@@ -859,6 +879,8 @@ public class MoreLikeThisQueryBuilder extends AbstractQueryBuilder<MoreLikeThisQ
                     minDocFreq = parser.intValue();
                 } else if (Field.MAX_DOC_FREQ.match(currentFieldName)) {
                     maxDocFreq = parser.intValue();
+                } else if (Field.MAX_DOC_FREQ_PCT.match(currentFieldName)) {
+                    maxDocFreqPct = parser.intValue();
                 } else if (Field.MIN_WORD_LENGTH.match(currentFieldName)) {
                     minWordLength = parser.intValue();
                 } else if (Field.MAX_WORD_LENGTH.match(currentFieldName)) {
@@ -947,6 +969,7 @@ public class MoreLikeThisQueryBuilder extends AbstractQueryBuilder<MoreLikeThisQ
                 .minTermFreq(minTermFreq)
                 .minDocFreq(minDocFreq)
                 .maxDocFreq(maxDocFreq)
+                .maxDocFreqPct(maxDocFreqPct)
                 .minWordLength(minWordLength)
                 .maxWordLength(maxWordLength)
                 .analyzer(analyzer)
@@ -1012,6 +1035,7 @@ public class MoreLikeThisQueryBuilder extends AbstractQueryBuilder<MoreLikeThisQ
         mltQuery.setMinTermFrequency(minTermFreq);
         mltQuery.setMinDocFreq(minDocFreq);
         mltQuery.setMaxDocFreq(maxDocFreq);
+        mltQuery.setMaxDocFreqPct(maxDocFreqPct);
         mltQuery.setMinWordLen(minWordLength);
         mltQuery.setMaxWordLen(maxWordLength);
         mltQuery.setMinimumShouldMatch(minimumShouldMatch);
@@ -1174,7 +1198,7 @@ public class MoreLikeThisQueryBuilder extends AbstractQueryBuilder<MoreLikeThisQ
     protected int doHashCode() {
         return Objects.hash(Arrays.hashCode(fields), Arrays.hashCode(likeTexts),
                 Arrays.hashCode(unlikeTexts), Arrays.hashCode(likeItems), Arrays.hashCode(unlikeItems),
-                maxQueryTerms, minTermFreq, minDocFreq, maxDocFreq, minWordLength, maxWordLength,
+                maxQueryTerms, minTermFreq, minDocFreq, maxDocFreq, maxDocFreqPct, minWordLength, maxWordLength,
                 Arrays.hashCode(stopWords), analyzer, minimumShouldMatch, boostTerms, include, failOnUnsupportedField);
     }
 
@@ -1189,6 +1213,7 @@ public class MoreLikeThisQueryBuilder extends AbstractQueryBuilder<MoreLikeThisQ
                 Objects.equals(minTermFreq, other.minTermFreq) &&
                 Objects.equals(minDocFreq, other.minDocFreq) &&
                 Objects.equals(maxDocFreq, other.maxDocFreq) &&
+                Objects.equals(maxDocFreqPct, other.maxDocFreqPct) &&
                 Objects.equals(minWordLength, other.minWordLength) &&
                 Objects.equals(maxWordLength, other.maxWordLength) &&
                 Arrays.equals(stopWords, other.stopWords) &&  // otherwise we are comparing pointers

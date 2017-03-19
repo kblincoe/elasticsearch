@@ -63,6 +63,7 @@ public class MoreLikeThisQuery extends Query {
     private Set<?> stopWords = XMoreLikeThis.DEFAULT_STOP_WORDS;
     private int minDocFreq = XMoreLikeThis.DEFAULT_MIN_DOC_FREQ;
     private int maxDocFreq = XMoreLikeThis.DEFAULT_MAX_DOC_FREQ;
+    private int maxDocFreqPct = XMoreLikeThis.DEFAULT_MAX_DOC_FREQ_PCT;
     private int minWordLen = XMoreLikeThis.DEFAULT_MIN_WORD_LENGTH;
     private int maxWordLen = XMoreLikeThis.DEFAULT_MAX_WORD_LENGTH;
     private boolean boostTerms = XMoreLikeThis.DEFAULT_BOOST;
@@ -82,7 +83,7 @@ public class MoreLikeThisQuery extends Query {
     @Override
     public int hashCode() {
         return Objects.hash(classHash(), boostTerms, boostTermsFactor, Arrays.hashCode(likeText),
-                maxDocFreq, maxQueryTerms, maxWordLen, minDocFreq, minTermFrequency, minWordLen,
+                maxDocFreq, maxDocFreqPct, maxQueryTerms, maxWordLen, minDocFreq, minTermFrequency, minWordLen,
                 Arrays.hashCode(moreLikeFields), minimumShouldMatch, stopWords);
     }
 
@@ -101,6 +102,8 @@ public class MoreLikeThisQuery extends Query {
         if (!(Arrays.equals(likeText, other.likeText)))
             return false;
         if (maxDocFreq != other.maxDocFreq)
+            return false;
+        if (maxDocFreqPct != other.maxDocFreqPct)
             return false;
         if (maxQueryTerms != other.maxQueryTerms)
             return false;
@@ -142,6 +145,7 @@ public class MoreLikeThisQuery extends Query {
         mlt.setMinTermFreq(minTermFrequency);
         mlt.setMinDocFreq(minDocFreq);
         mlt.setMaxDocFreq(maxDocFreq);
+        mlt.setMaxDocFreqPct(maxDocFreqPct);
         mlt.setMaxQueryTerms(maxQueryTerms);
         mlt.setMinWordLen(minWordLen);
         mlt.setMaxWordLen(maxWordLen);
@@ -337,6 +341,13 @@ public class MoreLikeThisQuery extends Query {
 
     public void setMaxDocFreq(int maxDocFreq) {
         this.maxDocFreq = maxDocFreq;
+    }
+
+    public int getMaxDocFreqPct(){
+        return maxDocFreqPct;
+    }
+    public void setMaxDocFreqPct(int maxDocFreqPct){
+        this.maxDocFreqPct = maxDocFreqPct;
     }
 
     public int getMinWordLen() {
