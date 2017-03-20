@@ -172,7 +172,6 @@ final class DefaultSearchContext extends SearchContext {
         this.timeout = timeout;
         queryShardContext = indexService.newQueryShardContext(request.shardId().id(), searcher.getIndexReader(), request::nowInMillis);
         queryShardContext.setTypes(request.types());
-        queryShardContext.setIsProfile(request.source().profile()); // Mark whether request is being profiled
         queryBoost = request.indexBoost();
     }
 
