@@ -115,7 +115,7 @@ public class SimpleIcuCollationTokenFilterTests extends ESTestCase {
                 .put("index.analysis.filter.myCollator.language", "en")
                 .put("index.analysis.filter.myCollator.strength", "primary")
                 .put("index.analysis.filter.myCollator.alternate", "shifted")
-                .put("index.analysis.filter.myCollator.variableTop", " ")
+                .put("index.analysis.filter.myCollator.variable_top", " ")
                 .build();
         TestAnalysis analysis = createTestAnalysis(new Index("test", "_na_"), settings, new AnalysisICUPlugin());
 
@@ -150,7 +150,7 @@ public class SimpleIcuCollationTokenFilterTests extends ESTestCase {
                 .put("index.analysis.filter.myCollator.type", "icu_collation")
                 .put("index.analysis.filter.myCollator.language", "en")
                 .put("index.analysis.filter.myCollator.strength", "primary")
-                .put("index.analysis.filter.myCollator.caseLevel", "true")
+                .put("index.analysis.filter.myCollator.case_level", "true")
                 .build();
         TestAnalysis analysis = createTestAnalysis(new Index("test", "_na_"), settings, new AnalysisICUPlugin());
 
@@ -170,7 +170,7 @@ public class SimpleIcuCollationTokenFilterTests extends ESTestCase {
                 .put("index.analysis.filter.myCollator.type", "icu_collation")
                 .put("index.analysis.filter.myCollator.language", "en")
                 .put("index.analysis.filter.myCollator.strength", "tertiary")
-                .put("index.analysis.filter.myCollator.caseFirst", "upper")
+                .put("index.analysis.filter.myCollator.case_first", "upper")
                 .build();
         TestAnalysis analysis = createTestAnalysis(new Index("test", "_na_"), settings, new AnalysisICUPlugin());
 

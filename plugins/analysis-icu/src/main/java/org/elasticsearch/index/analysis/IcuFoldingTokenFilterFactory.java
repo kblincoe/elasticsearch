@@ -36,7 +36,7 @@ import org.elasticsearch.index.IndexSettings;
  * Can be filtered to handle certain characters in a specified way (see http://icu-project.org/apiref/icu4j/com/ibm/icu/text/UnicodeSet.html)
  * E.g national chars that should be retained (filter : "[^åäöÅÄÖ]").
  *
- * <p>The <tt>unicodeSetFilter</tt> attribute can be used to provide the UniCodeSet for filtering.
+ * <p>The <tt>unicode_set_filter</tt> attribute can be used to provide the UniCodeSet for filtering.
  *
  * @author kimchy (shay.banon)
  */
@@ -45,7 +45,7 @@ public class IcuFoldingTokenFilterFactory extends AbstractTokenFilterFactory imp
 
     public IcuFoldingTokenFilterFactory(IndexSettings indexSettings, Environment environment, String name, Settings settings) {
         super(indexSettings, name, settings);
-        this.unicodeSetFilter = settings.get("unicodeSetFilter");
+        this.unicodeSetFilter = settings.get("unicode_set_filter");
     }
 
     @Override
