@@ -97,6 +97,7 @@ public class QueryShardContext extends QueryRewriteContext {
     private boolean mapUnmappedFieldAsString;
     private NestedScope nestedScope;
     private boolean isFilter;
+    private boolean isProfile;
 
     public QueryShardContext(int shardId, IndexSettings indexSettings, BitsetFilterCache bitsetFilterCache,
             IndexFieldDataService indexFieldDataService, MapperService mapperService, SimilarityService similarityService,
@@ -420,5 +421,19 @@ public class QueryShardContext extends QueryRewriteContext {
     public Client getClient() {
         failIfFrozen(); // we somebody uses a terms filter with lookup for instance can't be cached...
         return super.getClient();
+    }
+
+    /**
+     * Check if the request is a profiling request.
+     */
+    public boolean isProfile() {
+        return isProfile;
+    }
+
+    /**
+     * @param profile Set whether the request is a profiling request.
+     */
+    public void setIsProfile(boolean profile) {
+        isProfile = profile;
     }
 }
