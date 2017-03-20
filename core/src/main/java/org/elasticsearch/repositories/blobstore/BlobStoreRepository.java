@@ -88,6 +88,7 @@ import org.elasticsearch.index.snapshots.blobstore.SlicedInputStream;
 import org.elasticsearch.index.snapshots.blobstore.SnapshotFiles;
 import org.elasticsearch.index.store.Store;
 import org.elasticsearch.index.store.StoreFileMetaData;
+import org.elasticsearch.indices.cluster.IndicesClusterStateService;
 import org.elasticsearch.indices.recovery.RecoveryState;
 import org.elasticsearch.repositories.IndexId;
 import org.elasticsearch.repositories.Repository;
@@ -95,6 +96,7 @@ import org.elasticsearch.repositories.RepositoryData;
 import org.elasticsearch.repositories.RepositoryException;
 import org.elasticsearch.repositories.RepositoryVerificationException;
 import org.elasticsearch.snapshots.InvalidSnapshotNameException;
+import org.elasticsearch.snapshots.Snapshot;
 import org.elasticsearch.snapshots.SnapshotCreationException;
 import org.elasticsearch.snapshots.SnapshotException;
 import org.elasticsearch.snapshots.SnapshotId;
@@ -462,15 +464,18 @@ public abstract class BlobStoreRepository extends AbstractLifecycleComponent imp
                                          final String failure,
                                          final int totalShards,
                                          final List<SnapshotShardFailure> shardFailures,
-                                         final long repositoryStateId) {
+                                         final long repositoryStateId,
+                                         final List<ShardId> shardIds) {
         try {
+            long sizeOfSnapshotInBytes = calculateSnapshotSize(snapshotId, indices, shardIds);
             SnapshotInfo blobStoreSnapshot = new SnapshotInfo(snapshotId,
                                                               indices.stream().map(IndexId::getName).collect(Collectors.toList()),
                                                               startTime,
                                                               failure,
                                                               System.currentTimeMillis(),
                                                               totalShards,
-                                                              shardFailures);
+                                                              shardFailures,
+                                                              sizeOfSnapshotInBytes);
             snapshotFormat.write(blobStoreSnapshot, snapshotsBlobContainer, snapshotId.getUUID());
             final RepositoryData repositoryData = getRepositoryData();
             List<SnapshotId> snapshotIds = repositoryData.getSnapshotIds();
@@ -1593,4 +1598,19 @@ public abstract class BlobStoreRepository extends AbstractLifecycleComponent imp
         }
     }
 
+    private long calculateSnapshotSize (SnapshotId snapshotId, List<IndexId> indices, List<ShardId> shardIds) {
+        long sizeOfSnapshotInBytes = 0;
+        for (IndexId indexId : indices) {
+            for (ShardId shardId : shardIds) {
+                // Try catch required here as an IndexShardSnapshotStatus might not be created due to the IndexId and ShardId mismatch
+                try {
+                    IndexShardSnapshotStatus indexStatus = getShardSnapshotStatus(snapshotId, Version.CURRENT, indexId, shardId);
+                    sizeOfSnapshotInBytes += indexStatus.totalSize();
+                } catch (Exception e) {
+                    logger.info(e);
+                }
+            }
+        }
+        return sizeOfSnapshotInBytes;
+    }
 }

@@ -89,6 +89,7 @@ public class RestSnapshotAction extends AbstractCatAction {
                 .addCell("failed_shards", "alias:fs,failed_shards;text-align:right;desc:number of failed shards")
                 .addCell("total_shards", "alias:ts,total_shards;text-align:right;desc:number of total shards")
                 .addCell("reason", "default:false;alias:r,reason;desc:reason for failures")
+                .addCell("snapshot_size", "alias:sss, snapshot_size;desc:size of snapshot in bytes")
                 .endHeaders();
     }
 
@@ -117,7 +118,7 @@ public class RestSnapshotAction extends AbstractCatAction {
             table.addCell(snapshotStatus.failedShards());
             table.addCell(snapshotStatus.totalShards());
             table.addCell(snapshotStatus.reason());
-
+            table.addCell(snapshotStatus.snapshotSize());
             table.endRow();
         }
 
