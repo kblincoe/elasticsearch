@@ -116,11 +116,3 @@ POST /twitter/_open
 --------------------------------------------------
 // CONSOLE
 // TEST[setup:twitter]
-
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-include::upgrade.asciidoc[]
->>>>>>> 159af532a1... test Link update
-=======
->>>>>>> 68a5fb5b73... Updating link and removing bottom reference
