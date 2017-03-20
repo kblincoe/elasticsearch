@@ -193,6 +193,14 @@ public final class XMoreLikeThis {
     public static final int DEFAULT_MAX_DOC_FREQ = Integer.MAX_VALUE;
 
     /**
+     * Ignore words which occur in more than this many percentage of docs.
+     *
+     * @see #getMaxDocFreq
+     * @see #setMaxDocFreq
+     * @see #setMaxDocFreqPct
+     */
+    public static final int DEFAULT_MAX_DOC_FREQ_PCT = 100;
+    /**
      * Boost terms in query based on score.
      *
      * @see #isBoost
@@ -883,10 +891,10 @@ public final class XMoreLikeThis {
      * @param fieldName Used by analyzer for any special per-field analysis
      */
     private void addTermFrequencies(Reader r, Map<String, Int> termFreqMap, String fieldName)
-            throws IOException {
+        throws IOException {
         if (analyzer == null) {
             throw new UnsupportedOperationException("To use MoreLikeThis without " +
-                    "term vectors, you must provide an Analyzer");
+                "term vectors, you must provide an Analyzer");
         }
         try (TokenStream ts = analyzer.tokenStream(fieldName, r)) {
             int tokenCount = 0;

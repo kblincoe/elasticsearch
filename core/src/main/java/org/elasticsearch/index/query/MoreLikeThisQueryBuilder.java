@@ -84,6 +84,7 @@ public class MoreLikeThisQueryBuilder extends AbstractQueryBuilder<MoreLikeThisQ
     public static final int DEFAULT_MIN_TERM_FREQ = XMoreLikeThis.DEFAULT_MIN_TERM_FREQ;
     public static final int DEFAULT_MIN_DOC_FREQ = XMoreLikeThis.DEFAULT_MIN_DOC_FREQ;
     public static final int DEFAULT_MAX_DOC_FREQ = XMoreLikeThis.DEFAULT_MAX_DOC_FREQ;
+    public static final int DEFAULT_MAX_DOC_FREQ_PCT = XMoreLikeThis.DEFAULT_MAX_DOC_FREQ_PCT;
     public static final int DEFAULT_MIN_WORD_LENGTH = XMoreLikeThis.DEFAULT_MIN_WORD_LENGTH;
     public static final int DEFAULT_MAX_WORD_LENGTH = XMoreLikeThis.DEFAULT_MAX_WORD_LENGTH;
     public static final String DEFAULT_MINIMUM_SHOULD_MATCH = MoreLikeThisQuery.DEFAULT_MINIMUM_SHOULD_MATCH;
@@ -92,7 +93,7 @@ public class MoreLikeThisQueryBuilder extends AbstractQueryBuilder<MoreLikeThisQ
     public static final boolean DEFAULT_FAIL_ON_UNSUPPORTED_FIELDS = true;
 
     private static final Set<Class<? extends MappedFieldType>> SUPPORTED_FIELD_TYPES = new HashSet<>(
-            Arrays.asList(TextFieldType.class, KeywordFieldType.class));
+        Arrays.asList(TextFieldType.class, KeywordFieldType.class));
 
     private interface Field {
         ParseField FIELDS = new ParseField("fields");
@@ -105,6 +106,7 @@ public class MoreLikeThisQueryBuilder extends AbstractQueryBuilder<MoreLikeThisQ
         ParseField MIN_TERM_FREQ = new ParseField("min_term_freq");
         ParseField MIN_DOC_FREQ = new ParseField("min_doc_freq");
         ParseField MAX_DOC_FREQ = new ParseField("max_doc_freq");
+        ParseField MAX_DOC_FREQ_PCT = new ParseField("max_doc_freq_pct");
         ParseField MIN_WORD_LENGTH = new ParseField("min_word_length", "min_word_len");
         ParseField MAX_WORD_LENGTH = new ParseField("max_word_length", "max_word_len");
         ParseField STOP_WORDS = new ParseField("stop_words");
@@ -127,6 +129,7 @@ public class MoreLikeThisQueryBuilder extends AbstractQueryBuilder<MoreLikeThisQ
     private int minTermFreq = DEFAULT_MIN_TERM_FREQ;
     private int minDocFreq = DEFAULT_MIN_DOC_FREQ;
     private int maxDocFreq = DEFAULT_MAX_DOC_FREQ;
+    private int maxDocFreqPct = DEFAULT_MAX_DOC_FREQ_PCT;
     private int minWordLength = DEFAULT_MIN_WORD_LENGTH;
     private int maxWordLength = DEFAULT_MAX_WORD_LENGTH;
     private String[] stopWords;
@@ -346,16 +349,16 @@ public class MoreLikeThisQueryBuilder extends AbstractQueryBuilder<MoreLikeThisQ
          */
         public TermVectorsRequest toTermVectorsRequest() {
             TermVectorsRequest termVectorsRequest = new TermVectorsRequest(index, type, id)
-                    .selectedFields(fields)
-                    .routing(routing)
-                    .version(version)
-                    .versionType(versionType)
-                    .perFieldAnalyzer(perFieldAnalyzer)
-                    .positions(false)  // ensures these following parameters are never set
-                    .offsets(false)
-                    .payloads(false)
-                    .fieldStatistics(false)
-                    .termStatistics(false);
+                .selectedFields(fields)
+                .routing(routing)
+                .version(version)
+                .versionType(versionType)
+                .perFieldAnalyzer(perFieldAnalyzer)
+                .positions(false)  // ensures these following parameters are never set
+                .offsets(false)
+                .payloads(false)
+                .fieldStatistics(false)
+                .termStatistics(false);
             // for artificial docs to make sure that the id has changed in the item too
             if (doc != null) {
                 termVectorsRequest.doc(doc, true, xContentType);
@@ -392,7 +395,7 @@ public class MoreLikeThisQueryBuilder extends AbstractQueryBuilder<MoreLikeThisQ
                             item.fields(fields.toArray(new String[fields.size()]));
                         } else {
                             throw new ElasticsearchParseException(
-                                    "failed to parse More Like This item. field [fields] must be an array");
+                                "failed to parse More Like This item. field [fields] must be an array");
                         }
                     } else if (Field.PER_FIELD_ANALYZER.match(currentFieldName)) {
                         item.perFieldAnalyzer(TermVectorsRequest.readPerFieldAnalyzer(parser.map()));
@@ -401,21 +404,21 @@ public class MoreLikeThisQueryBuilder extends AbstractQueryBuilder<MoreLikeThisQ
                     } else if ("_version".equals(currentFieldName) || "version".equals(currentFieldName)) {
                         item.version = parser.longValue();
                     } else if ("_version_type".equals(currentFieldName) || "_versionType".equals(currentFieldName)
-                            || "version_type".equals(currentFieldName) || "versionType".equals(currentFieldName)) {
+                        || "version_type".equals(currentFieldName) || "versionType".equals(currentFieldName)) {
                         item.versionType = VersionType.fromString(parser.text());
                     } else {
                         throw new ElasticsearchParseException(
-                                "failed to parse More Like This item. unknown field [{}]", currentFieldName);
+                            "failed to parse More Like This item. unknown field [{}]", currentFieldName);
                     }
                 }
             }
             if (item.id != null && item.doc != null) {
                 throw new ElasticsearchParseException(
-                        "failed to parse More Like This item. either [id] or [doc] can be specified, but not both!");
+                    "failed to parse More Like This item. either [id] or [doc] can be specified, but not both!");
             }
             if (item.id == null && item.doc == null) {
                 throw new ElasticsearchParseException(
-                        "failed to parse More Like This item. neither [id] nor [doc] is specified!");
+                    "failed to parse More Like This item. neither [id] nor [doc] is specified!");
             }
             return item;
         }
@@ -468,7 +471,7 @@ public class MoreLikeThisQueryBuilder extends AbstractQueryBuilder<MoreLikeThisQ
         @Override
         public int hashCode() {
             return Objects.hash(index, type, id, doc, Arrays.hashCode(fields), perFieldAnalyzer, routing,
-                    version, versionType);
+                version, versionType);
         }
 
         @Override
@@ -477,14 +480,14 @@ public class MoreLikeThisQueryBuilder extends AbstractQueryBuilder<MoreLikeThisQ
             if (!(o instanceof Item)) return false;
             Item other = (Item) o;
             return Objects.equals(index, other.index) &&
-                    Objects.equals(type, other.type) &&
-                    Objects.equals(id, other.id) &&
-                    Objects.equals(doc, other.doc) &&
-                    Arrays.equals(fields, other.fields) &&  // otherwise we are comparing pointers
-                    Objects.equals(perFieldAnalyzer, other.perFieldAnalyzer) &&
-                    Objects.equals(routing, other.routing) &&
-                    Objects.equals(version, other.version) &&
-                    Objects.equals(versionType, other.versionType);
+                Objects.equals(type, other.type) &&
+                Objects.equals(id, other.id) &&
+                Objects.equals(doc, other.doc) &&
+                Arrays.equals(fields, other.fields) &&  // otherwise we are comparing pointers
+                Objects.equals(perFieldAnalyzer, other.perFieldAnalyzer) &&
+                Objects.equals(routing, other.routing) &&
+                Objects.equals(version, other.version) &&
+                Objects.equals(versionType, other.versionType);
         }
     }
 
@@ -531,6 +534,7 @@ public class MoreLikeThisQueryBuilder extends AbstractQueryBuilder<MoreLikeThisQ
         minTermFreq = in.readVInt();
         minDocFreq = in.readVInt();
         maxDocFreq = in.readVInt();
+        maxDocFreqPct = in.readVInt();
         minWordLength = in.readVInt();
         maxWordLength = in.readVInt();
         stopWords = in.readOptionalStringArray();
@@ -552,6 +556,7 @@ public class MoreLikeThisQueryBuilder extends AbstractQueryBuilder<MoreLikeThisQ
         out.writeVInt(minTermFreq);
         out.writeVInt(minDocFreq);
         out.writeVInt(maxDocFreq);
+        out.writeVInt(maxDocFreqPct);
         out.writeVInt(minWordLength);
         out.writeVInt(maxWordLength);
         out.writeOptionalStringArray(stopWords);
@@ -648,6 +653,19 @@ public class MoreLikeThisQueryBuilder extends AbstractQueryBuilder<MoreLikeThisQ
 
     public int maxDocFreq() {
         return maxDocFreq;
+    }
+
+    public int maxDocFreqPct(){
+        return maxDocFreqPct;
+    }
+
+    /**
+     * Sets the maximum frequency (in percentage) in which words may appear. Words that occur in more than this many
+     * percentage of docs will be ignored. The default value is 100.
+     */
+    public MoreLikeThisQueryBuilder maxDocFreqPct(int maxDocFreqPct){
+        this.maxDocFreqPct = maxDocFreqPct;
+        return this;
     }
 
     /**
@@ -793,6 +811,7 @@ public class MoreLikeThisQueryBuilder extends AbstractQueryBuilder<MoreLikeThisQ
         builder.field(Field.MIN_TERM_FREQ.getPreferredName(), minTermFreq);
         builder.field(Field.MIN_DOC_FREQ.getPreferredName(), minDocFreq);
         builder.field(Field.MAX_DOC_FREQ.getPreferredName(), maxDocFreq);
+        builder.field(Field.MAX_DOC_FREQ_PCT.getPreferredName(), maxDocFreqPct);
         builder.field(Field.MIN_WORD_LENGTH.getPreferredName(), minWordLength);
         builder.field(Field.MAX_WORD_LENGTH.getPreferredName(), maxWordLength);
         if (stopWords != null) {
@@ -824,6 +843,7 @@ public class MoreLikeThisQueryBuilder extends AbstractQueryBuilder<MoreLikeThisQ
         int minTermFreq = MoreLikeThisQueryBuilder.DEFAULT_MIN_TERM_FREQ;
         int minDocFreq = MoreLikeThisQueryBuilder.DEFAULT_MIN_DOC_FREQ;
         int maxDocFreq = MoreLikeThisQueryBuilder.DEFAULT_MAX_DOC_FREQ;
+        int maxDocFreqPct = MoreLikeThisQueryBuilder.DEFAULT_MAX_DOC_FREQ_PCT;
         int minWordLength = MoreLikeThisQueryBuilder.DEFAULT_MIN_WORD_LENGTH;
         int maxWordLength = MoreLikeThisQueryBuilder.DEFAULT_MAX_WORD_LENGTH;
         List<String> stopWords = null;
@@ -859,6 +879,8 @@ public class MoreLikeThisQueryBuilder extends AbstractQueryBuilder<MoreLikeThisQ
                     minDocFreq = parser.intValue();
                 } else if (Field.MAX_DOC_FREQ.match(currentFieldName)) {
                     maxDocFreq = parser.intValue();
+                } else if (Field.MAX_DOC_FREQ_PCT.match(currentFieldName)) {
+                    maxDocFreqPct = parser.intValue();
                 } else if (Field.MIN_WORD_LENGTH.match(currentFieldName)) {
                     minWordLength = parser.intValue();
                 } else if (Field.MAX_WORD_LENGTH.match(currentFieldName)) {
@@ -947,6 +969,7 @@ public class MoreLikeThisQueryBuilder extends AbstractQueryBuilder<MoreLikeThisQ
                 .minTermFreq(minTermFreq)
                 .minDocFreq(minDocFreq)
                 .maxDocFreq(maxDocFreq)
+                .maxDocFreqPct(maxDocFreqPct)
                 .minWordLength(minWordLength)
                 .maxWordLength(maxWordLength)
                 .analyzer(analyzer)
@@ -1012,6 +1035,7 @@ public class MoreLikeThisQueryBuilder extends AbstractQueryBuilder<MoreLikeThisQ
         mltQuery.setMinTermFrequency(minTermFreq);
         mltQuery.setMinDocFreq(minDocFreq);
         mltQuery.setMaxDocFreq(maxDocFreq);
+        mltQuery.setMaxDocFreqPct(maxDocFreqPct);
         mltQuery.setMinWordLen(minWordLength);
         mltQuery.setMaxWordLen(maxWordLength);
         mltQuery.setMinimumShouldMatch(minimumShouldMatch);
@@ -1115,7 +1139,7 @@ public class MoreLikeThisQueryBuilder extends AbstractQueryBuilder<MoreLikeThisQ
         if (item.type() == null) {
             if (context.queryTypes().size() > 1) {
                 throw new QueryShardException(context,
-                        "ambiguous type for item with id: " + item.id() + " and index: " + item.index());
+                    "ambiguous type for item with id: " + item.id() + " and index: " + item.index());
             } else {
                 item.type(context.queryTypes().iterator().next());
             }
@@ -1173,30 +1197,35 @@ public class MoreLikeThisQueryBuilder extends AbstractQueryBuilder<MoreLikeThisQ
     @Override
     protected int doHashCode() {
         return Objects.hash(Arrays.hashCode(fields), Arrays.hashCode(likeTexts),
-                Arrays.hashCode(unlikeTexts), Arrays.hashCode(likeItems), Arrays.hashCode(unlikeItems),
-                maxQueryTerms, minTermFreq, minDocFreq, maxDocFreq, minWordLength, maxWordLength,
-                Arrays.hashCode(stopWords), analyzer, minimumShouldMatch, boostTerms, include, failOnUnsupportedField);
+            Arrays.hashCode(unlikeTexts), Arrays.hashCode(likeItems), Arrays.hashCode(unlikeItems),
+            maxQueryTerms, minTermFreq, minDocFreq, maxDocFreq, maxDocFreqPct, minWordLength, maxWordLength,
+            Arrays.hashCode(stopWords), analyzer, minimumShouldMatch, boostTerms, include, failOnUnsupportedField);
+
     }
 
     @Override
     protected boolean doEquals(MoreLikeThisQueryBuilder other) {
         return Arrays.equals(fields, other.fields) &&
-                Arrays.equals(likeTexts, other.likeTexts) &&
-                Arrays.equals(unlikeTexts, other.unlikeTexts) &&
-                Arrays.equals(likeItems, other.likeItems) &&
-                Arrays.equals(unlikeItems, other.unlikeItems) &&
-                Objects.equals(maxQueryTerms, other.maxQueryTerms) &&
-                Objects.equals(minTermFreq, other.minTermFreq) &&
-                Objects.equals(minDocFreq, other.minDocFreq) &&
-                Objects.equals(maxDocFreq, other.maxDocFreq) &&
-                Objects.equals(minWordLength, other.minWordLength) &&
-                Objects.equals(maxWordLength, other.maxWordLength) &&
-                Arrays.equals(stopWords, other.stopWords) &&  // otherwise we are comparing pointers
-                Objects.equals(analyzer, other.analyzer) &&
-                Objects.equals(minimumShouldMatch, other.minimumShouldMatch) &&
-                Objects.equals(boostTerms, other.boostTerms) &&
-                Objects.equals(include, other.include) &&
-                Objects.equals(failOnUnsupportedField, other.failOnUnsupportedField);
+
+            Arrays.equals(likeTexts, other.likeTexts) &&
+            Arrays.equals(unlikeTexts, other.unlikeTexts) &&
+            Arrays.equals(likeItems, other.likeItems) &&
+            Arrays.equals(unlikeItems, other.unlikeItems) &&
+            Objects.equals(maxQueryTerms, other.maxQueryTerms) &&
+            Objects.equals(minTermFreq, other.minTermFreq) &&
+            Objects.equals(minDocFreq, other.minDocFreq) &&
+            Objects.equals(maxDocFreq, other.maxDocFreq) &&
+            Objects.equals(maxDocFreqPct, other.maxDocFreqPct) &&
+            Objects.equals(minWordLength, other.minWordLength) &&
+            Objects.equals(maxWordLength, other.maxWordLength) &&
+            Arrays.equals(stopWords, other.stopWords) &&  // otherwise we are comparing pointers
+            Objects.equals(analyzer, other.analyzer) &&
+            Objects.equals(minimumShouldMatch, other.minimumShouldMatch) &&
+            Objects.equals(boostTerms, other.boostTerms) &&
+            Objects.equals(include, other.include) &&
+            Objects.equals(failOnUnsupportedField, other.failOnUnsupportedField);
+
+
     }
 
     @Override
