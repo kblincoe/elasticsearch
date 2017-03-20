@@ -47,6 +47,10 @@ public class IndexResponse extends DocWriteResponse {
         super(shardId, type, id, seqNo, version, created ? Result.CREATED : Result.UPDATED);
     }
 
+    public IndexResponse(ShardId shardId, String type, String id, String input, long seqNo, long version, boolean created) {
+        super(shardId, type, id, input, seqNo, version, created ? Result.CREATED : Result.UPDATED);
+    }
+
     @Override
     public RestStatus status() {
         return result == Result.CREATED ? RestStatus.CREATED : super.status();

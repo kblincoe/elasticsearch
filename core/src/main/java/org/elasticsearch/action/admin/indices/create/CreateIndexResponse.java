@@ -66,6 +66,6 @@ public class CreateIndexResponse extends AcknowledgedResponse {
     }
 
     public void addCustomFields(XContentBuilder builder) throws IOException {
-        builder.field("shards_acknowledged", isShardsAcked());
+        builder.field("shards_acknowledged", isShardsAcked());  
     }
 }
