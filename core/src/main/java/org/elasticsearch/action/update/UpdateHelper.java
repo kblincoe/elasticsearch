@@ -109,7 +109,7 @@ public class UpdateHelper extends AbstractComponent {
                                 request.script.getIdOrCode());
                     }
                     UpdateResponse update = new UpdateResponse(shardId, getResult.getType(), getResult.getId(),
-                            getResult.getVersion(), DocWriteResponse.Result.NOOP);
+                            getResult.getVersion(), DocWriteResponse.Result.NOOP, System.currentTimeMillis() - nowInMillis.getAsLong());
                     update.setGetResult(getResult);
                     return new Result(update, DocWriteResponse.Result.NOOP, upsertDoc, XContentType.JSON);
                 }
@@ -197,12 +197,14 @@ public class UpdateHelper extends AbstractComponent {
                     .setRefreshPolicy(request.getRefreshPolicy());
             return new Result(deleteRequest, DocWriteResponse.Result.DELETED, updatedSourceAsMap, updateSourceContentType);
         } else if ("none".equals(operation)) {
-            UpdateResponse update = new UpdateResponse(shardId, getResult.getType(), getResult.getId(), getResult.getVersion(), DocWriteResponse.Result.NOOP);
+            UpdateResponse update = new UpdateResponse(shardId, getResult.getType(), getResult.getId(), getResult.getVersion(),
+                DocWriteResponse.Result.NOOP, System.currentTimeMillis() - nowInMillis.getAsLong());
             update.setGetResult(extractGetResult(request, request.index(), getResult.getVersion(), updatedSourceAsMap, updateSourceContentType, getResult.internalSourceRef()));
             return new Result(update, DocWriteResponse.Result.NOOP, updatedSourceAsMap, updateSourceContentType);
         } else {
             logger.warn("Used update operation [{}] for script [{}], doing nothing...", operation, request.script.getIdOrCode());
-            UpdateResponse update = new UpdateResponse(shardId, getResult.getType(), getResult.getId(), getResult.getVersion(), DocWriteResponse.Result.NOOP);
+            UpdateResponse update = new UpdateResponse(shardId, getResult.getType(), getResult.getId(), getResult.getVersion(),
+                DocWriteResponse.Result.NOOP, System.currentTimeMillis() - nowInMillis.getAsLong());
             return new Result(update, DocWriteResponse.Result.NOOP, updatedSourceAsMap, updateSourceContentType);
         }
     }

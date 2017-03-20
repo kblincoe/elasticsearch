@@ -43,8 +43,8 @@ public class IndexResponse extends DocWriteResponse {
     public IndexResponse() {
     }
 
-    public IndexResponse(ShardId shardId, String type, String id, long seqNo, long version, boolean created) {
-        super(shardId, type, id, seqNo, version, created ? Result.CREATED : Result.UPDATED);
+    public IndexResponse(ShardId shardId, String type, String id, long seqNo, long version, boolean created, long took) {
+        super(shardId, type, id, seqNo, version, created ? Result.CREATED : Result.UPDATED, took);
     }
 
     @Override
@@ -114,7 +114,7 @@ public class IndexResponse extends DocWriteResponse {
 
         @Override
         public IndexResponse build() {
-            IndexResponse indexResponse = new IndexResponse(shardId, type, id, seqNo, version, created);
+            IndexResponse indexResponse = new IndexResponse(shardId, type, id, seqNo, version, created, took);
             indexResponse.setForcedRefresh(forcedRefresh);
             if (shardInfo != null) {
                 indexResponse.setShardInfo(shardInfo);

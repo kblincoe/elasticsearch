@@ -291,7 +291,7 @@ public class AsyncBulkByScrollActionTests extends ESTestCase {
                 responses[i] = new BulkItemResponse(
                     i,
                     opType,
-                    new IndexResponse(shardId, "type", "id" + i, randomInt(20), randomInt(), createdResponse));
+                    new IndexResponse(shardId, "type", "id" + i, randomInt(20), randomInt(), createdResponse, 0L));
             }
             new DummyAsyncBulkByScrollAction().onBulkResponse(timeValueNanos(System.nanoTime()), new BulkResponse(responses, 0));
             assertEquals(versionConflicts, testTask.getStatus().getVersionConflicts());
@@ -796,11 +796,12 @@ public class AsyncBulkByScrollActionTests extends ESTestCase {
                                 index.id(),
                                 randomInt(20),
                                 randomIntBetween(0, Integer.MAX_VALUE),
-                                true);
+                                true,
+                                0L);
                     } else if (item instanceof UpdateRequest) {
                         UpdateRequest update = (UpdateRequest) item;
                         response = new UpdateResponse(shardId, update.type(), update.id(),
-                                randomIntBetween(0, Integer.MAX_VALUE), Result.CREATED);
+                                randomIntBetween(0, Integer.MAX_VALUE), Result.CREATED, 0L);
                     } else if (item instanceof DeleteRequest) {
                         DeleteRequest delete = (DeleteRequest) item;
                         response =
@@ -810,7 +811,7 @@ public class AsyncBulkByScrollActionTests extends ESTestCase {
                                 delete.id(),
                                 randomInt(20),
                                 randomIntBetween(0, Integer.MAX_VALUE),
-                                true);
+                                true, 0L);
                     } else {
                         throw new RuntimeException("Unknown request:  " + item);
                     }

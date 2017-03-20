@@ -170,10 +170,11 @@ the request was ignored.
    "_type": "type1",
    "_id": "1",
    "_version": 6,
-   "result": noop
+   "result": noop,
+   "took": 0
 }
 --------------------------------------------------
-// TESTRESPONSE
+// TESTRESPONSE[s/"took": 0/"took": $body.took/]
 
 You can disable this behavior by setting "detect_noop": false like this:
 
