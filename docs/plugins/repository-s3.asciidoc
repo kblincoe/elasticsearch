@@ -196,6 +196,9 @@ The following settings are supported:
     Specifies the path within bucket to repository data. Defaults to
     value of `repositories.s3.base_path` or to root directory if not set.
 
+    Please note that although the base path can be started with a "/",
+    this has now been deprecated.
+
 `access_key`::
 
     The access key to use for authentication. Defaults to value of
