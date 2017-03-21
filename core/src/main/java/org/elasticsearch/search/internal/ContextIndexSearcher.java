@@ -126,9 +126,7 @@ public class ContextIndexSearcher extends IndexSearcher implements Releasable {
             }
 
             if (weight instanceof ProfileWeight) {
-            	// Issue 23430
-            	// Prevents double wrapping of weights when a query contains an inner query 
-            	// (e.g. ConstantScoreQuery) 
+                // Prevent double wrapping of weights when a query contains an inner query
                 return weight;
             } else {
                 return new ProfileWeight(query, weight, profile);
