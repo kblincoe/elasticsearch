@@ -361,8 +361,13 @@ public class SearchSourceBuilderTests extends AbstractSearchTestCase {
     }
 
     public void testNegativeFromErrors() {
-        IllegalArgumentException expected = expectThrows(IllegalArgumentException.class, () -> new SearchSourceBuilder().from(-2));
-        assertEquals("[from] parameter cannot be negative", expected.getMessage());
+        IllegalArgumentException expected = expectThrows(IllegalArgumentException.class, () -> new SearchSourceBuilder().from(-1));
+        assertEquals("[from] parameter cannot be negative but was [-1]", expected.getMessage());
+    }
+
+    public void testNegativeSizeErrors() {
+        IllegalArgumentException expected = expectThrows(IllegalArgumentException.class, () -> new SearchSourceBuilder().size(-1));
+        assertEquals("[size] parameter cannot be negative but was [-1]", expected.getMessage());
     }
 
     private void assertIndicesBoostParseErrorMessage(String restContent, String expectedErrorMessage) throws IOException {
