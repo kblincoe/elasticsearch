@@ -866,6 +866,110 @@ public class DateRangeIT extends ESIntegTestCase {
     }
 
     /**
+     * Make sure the `missing` option is supported for date range aggregations
+     */
+    public void testMissingAggregation() throws Exception{
+        createIndex("idx_missing");
+        List<IndexRequestBuilder> builders = new ArrayList<>();
+        int numDocs = randomIntBetween(10, 20);
+        int numDocsMissing = randomIntBetween(1, numDocs - 1);
+        for(int i = 0; i < numDocs; i++) {
+            builders.add(client().prepareIndex("missing_idx", "type", "" + i).setSource(jsonBuilder()
+                .startObject()
+                .field("date", date(randomIntBetween(6, 10), randomIntBetween(1, 20)))
+                .endObject()));
+        }
+        for(int i = numDocs; i < numDocs + numDocsMissing; i++){
+            builders.add(client().prepareIndex("missing_idx", "type", ""+i).setSource(jsonBuilder()
+                .startObject()
+                .endObject()));
+        }
+
+        indexRandom(true, builders);
+        ensureSearchable();
+
+        SearchResponse response = client().prepareSearch("missing_idx")
+            .addAggregation(dateRange("range")
+                .field("date")
+                .addUnboundedTo("2012-02-15")
+                .addRange("2012-02-15", "2012-03-15")
+                .addUnboundedFrom("2012-03-15"))
+            .addAggregation(dateRange("range_missing")
+                .missing("2012-02-16")
+                .field("date")
+                .addUnboundedTo("2012-02-15")
+                .addRange("2012-02-15", "2012-03-15")
+                .addUnboundedFrom("2012-03-15"))
+            .execute().actionGet();
+
+        assertSearchResponse(response);
+
+
+        Range range = response.getAggregations().get("range");
+        assertThat(range, notNullValue());
+        assertThat(range.getName(), equalTo("range"));
+        List<? extends Bucket> buckets = range.getBuckets();
+        assertThat(range.getBuckets().size(), equalTo(3));
+
+        Range range_missing = response.getAggregations().get("range_missing");
+        assertThat(range_missing, notNullValue());
+        assertThat(range_missing.getName(), equalTo("range_missing"));
+        List<? extends Bucket> buckets_missing = range_missing.getBuckets();
+        assertThat(range_missing.getBuckets().size(), equalTo(3));
+
+        Range.Bucket bucket = buckets.get(0);
+        assertThat(bucket, notNullValue());
+        assertThat(bucket.getKey(), equalTo("*-2012-02-15T00:00:00.000Z"));
+        assertThat(((DateTime) bucket.getFrom()), nullValue());
+        assertThat(((DateTime) bucket.getTo()), equalTo(date(2, 15)));
+        assertThat(bucket.getFromAsString(), nullValue());
+        assertThat(bucket.getToAsString(), equalTo("2012-02-15T00:00:00.000Z"));
+
+        Range.Bucket bucket_missing = buckets_missing.get(0);
+        assertThat(bucket_missing, notNullValue());
+        assertThat(bucket_missing.getKey(), equalTo("*-2012-02-15T00:00:00.000Z"));
+        assertThat(((DateTime) bucket_missing.getFrom()), nullValue());
+        assertThat(((DateTime) bucket_missing.getTo()), equalTo(date(2, 15)));
+        assertThat(bucket_missing.getFromAsString(), nullValue());
+        assertThat(bucket_missing.getToAsString(), equalTo("2012-02-15T00:00:00.000Z"));
+        assertThat(bucket_missing.getDocCount(), equalTo(bucket.getDocCount()));
+
+        bucket = buckets.get(1);
+        assertThat(bucket, notNullValue());
+        assertThat((String) bucket.getKey(), equalTo("2012-02-15T00:00:00.000Z-2012-03-15T00:00:00.000Z"));
+        assertThat(((DateTime) bucket.getFrom()), equalTo(date(2, 15)));
+        assertThat(((DateTime) bucket.getTo()), equalTo(date(3, 15)));
+        assertThat(bucket.getFromAsString(), equalTo("2012-02-15T00:00:00.000Z"));
+        assertThat(bucket.getToAsString(), equalTo("2012-03-15T00:00:00.000Z"));
+
+        bucket_missing = buckets_missing.get(1);
+        assertThat(bucket_missing, notNullValue());
+        assertThat((String) bucket.getKey(), equalTo("2012-02-15T00:00:00.000Z-2012-03-15T00:00:00.000Z"));
+        assertThat(((DateTime) bucket.getFrom()), equalTo(date(2, 15)));
+        assertThat(((DateTime) bucket.getTo()), equalTo(date(3, 15)));
+        assertThat(bucket.getFromAsString(), equalTo("2012-02-15T00:00:00.000Z"));
+        assertThat(bucket.getToAsString(), equalTo("2012-03-15T00:00:00.000Z"));
+        assertThat(bucket_missing.getDocCount(), equalTo(bucket.getDocCount() + numDocsMissing));
+
+        bucket = buckets.get(2);
+        assertThat(bucket, notNullValue());
+        assertThat((String) bucket.getKey(), equalTo("2012-03-15T00:00:00.000Z-*"));
+        assertThat(((DateTime) bucket.getFrom()), equalTo(date(3, 15)));
+        assertThat(((DateTime) bucket.getTo()), nullValue());
+        assertThat(bucket.getFromAsString(), equalTo("2012-03-15T00:00:00.000Z"));
+        assertThat(bucket.getToAsString(), nullValue());
+
+        bucket_missing = buckets_missing.get(2);
+        assertThat(bucket_missing, notNullValue());
+        assertThat((String) bucket.getKey(), equalTo("2012-03-15T00:00:00.000Z-*"));
+        assertThat(((DateTime) bucket.getFrom()), equalTo(date(3, 15)));
+        assertThat(((DateTime) bucket.getTo()), nullValue());
+        assertThat(bucket.getFromAsString(), equalTo("2012-03-15T00:00:00.000Z"));
+        assertThat(bucket.getToAsString(), nullValue());
+        assertThat(bucket_missing.getDocCount(), equalTo(bucket.getDocCount()));
+    }
+
+    /**
      * Make sure that a request using a script does not get cached and a request
      * not using a script does get cached.
      */

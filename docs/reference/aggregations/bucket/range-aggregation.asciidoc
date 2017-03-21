@@ -53,6 +53,27 @@ Response:
 }
 --------------------------------------------------
 
+Adding the `missing` option to the `range` aggregation sets a default value for documents which do not have the specified value. All documents with the value missing will be added to the bucket corresponding to the value of the `missing` option. The following will place all documents without a `price` value in the `"from": 100` bucket:
+
+[source,js]
+--------------------------------------------------
+{
+    "aggs" : {
+        "price_ranges" : {
+            "range" : {
+                "field" : "price",
+                "missing" : "101",
+                "ranges" : [
+                    { "to" : 50 },
+                    { "from" : 50, "to" : 100 },
+                    { "from" : 100 }
+                ]
+            }
+        }
+    }
+}
+--------------------------------------------------
+
 ==== Keyed Response
 
 Setting the `keyed` flag to `true` will associate a unique string key with each bucket and return the ranges as a hash rather than an array:
