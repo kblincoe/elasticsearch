@@ -37,7 +37,7 @@ public class ExitCodes {
     public static final int PROTOCOL = 76;       /* remote error in protocol */
     public static final int NOPERM = 77;         /* permission denied */
     public static final int CONFIG = 78;         /* configuration error */
-    public static final int PLUGIN_EXISTS = 79;  /* config error; plugin already exists */
+    public static final int PLUGIN_EXISTS = 79;  /* plugin already exists */
 
     private ExitCodes() { /* no instance, just constants */ }
 }
