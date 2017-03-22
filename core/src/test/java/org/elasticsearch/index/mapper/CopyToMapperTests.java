@@ -150,8 +150,7 @@ public class CopyToMapperTests extends ESSingleNodeTestCase {
                 .endObject().bytes();
 
         ParseContext.Document doc = docMapper.parse(SourceToParse.source("test", "type1", "1", json, 
-                XContentType.JSON))
-                .rootDoc();
+                XContentType.JSON)).rootDoc();
         assertThat(doc.getFields("copy_test").length, equalTo(1));
         assertThat(doc.getFields("copy_test")[0].stringValue(), equalTo("foo"));
 
@@ -178,8 +177,7 @@ public class CopyToMapperTests extends ESSingleNodeTestCase {
                 .endObject().bytes();
 
         ParseContext.Document doc = docMapper.parse(SourceToParse.source("test", "type1", "1", json,
-                XContentType.JSON))
-                .rootDoc();
+                XContentType.JSON)).rootDoc();
         assertThat(doc.getFields("copy_test").length, equalTo(1));
         assertThat(doc.getFields("copy_test")[0].stringValue(), equalTo("foo"));
 
@@ -216,8 +214,7 @@ public class CopyToMapperTests extends ESSingleNodeTestCase {
             .endObject().bytes();
 
         ParseContext.Document doc = docMapper.parse(SourceToParse.source("test", "type1", "1", json, 
-                XContentType.JSON))
-                .rootDoc();
+                XContentType.JSON)).rootDoc();
         assertThat(doc.getFields("copy_test").length, equalTo(1));
         assertThat(doc.getFields("copy_test")[0].stringValue(), equalTo("foo"));
 

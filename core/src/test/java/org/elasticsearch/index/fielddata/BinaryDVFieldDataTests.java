@@ -58,8 +58,8 @@ public class BinaryDVFieldDataTests extends AbstractFieldDataTestCase {
         bytesList1.add(randomBytes());
         bytesList1.add(randomBytes());
         XContentBuilder doc = XContentFactory.jsonBuilder().startObject().startArray("field").value(bytesList1.get(0)).value(bytesList1.get(1)).endArray().endObject();
-        ParsedDocument d = mapper.parse(SourceToParse.source("test", "test", "1", doc.bytes(), 
-                XContentType.JSON));
+        ParsedDocument d = mapper.parse(SourceToParse.source("test", "test", "1", 
+                doc.bytes(), XContentType.JSON));
         writer.addDocument(d.rootDoc());
 
         byte[] bytes1 = randomBytes();
