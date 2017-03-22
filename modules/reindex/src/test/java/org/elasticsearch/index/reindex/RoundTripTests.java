@@ -137,7 +137,7 @@ public class RoundTripTests extends ESTestCase {
         request.setSize(random().nextBoolean() ? between(1, Integer.MAX_VALUE) : -1);
         request.setAbortOnVersionConflict(random().nextBoolean());
         request.setRefresh(rarely());
-        request.setTimeout(TimeValue.parseTimeValue(randomTimeValue(), null, "test"));
+        request.setShardTimeout(TimeValue.parseTimeValue(randomTimeValue(), null, "test"));
         request.setWaitForActiveShards(randomIntBetween(0, 10));
         request.setRequestsPerSecond(between(0, Integer.MAX_VALUE));
         request.setSlices(between(1, Integer.MAX_VALUE));
@@ -183,7 +183,7 @@ public class RoundTripTests extends ESTestCase {
         assertEquals(request.getSearchRequest().source().size(), tripped.getSearchRequest().source().size());
         assertEquals(request.isAbortOnVersionConflict(), tripped.isAbortOnVersionConflict());
         assertEquals(request.isRefresh(), tripped.isRefresh());
-        assertEquals(request.getTimeout(), tripped.getTimeout());
+        assertEquals(request.getShardTimeout(), tripped.getShardTimeout());
         assertEquals(request.getWaitForActiveShards(), tripped.getWaitForActiveShards());
         assertEquals(request.getRetryBackoffInitialTime(), tripped.getRetryBackoffInitialTime());
         assertEquals(request.getMaxRetries(), tripped.getMaxRetries());

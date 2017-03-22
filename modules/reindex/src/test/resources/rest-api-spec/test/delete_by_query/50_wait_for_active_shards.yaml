@@ -19,7 +19,7 @@
       catch: unavailable
       delete_by_query:
         index: test
-        timeout: 1s
+        shard_timeout: 1s
         wait_for_active_shards: 4
         body:
           query:
