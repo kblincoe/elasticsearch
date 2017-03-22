@@ -66,7 +66,16 @@ public class SearchScrollRequestTests extends ESTestCase {
 
     public static SearchScrollRequest createSearchScrollRequest() {
         SearchScrollRequest searchScrollRequest = new SearchScrollRequest(randomAsciiOfLengthBetween(3, 10));
-        searchScrollRequest.scroll(randomPositiveTimeValue());
+
+        TimeValue randomKeepAlive;
+        String randomTimeValue;
+        //Ensure that random time value does not conflict with 5 minute keepAlive limitation
+        do {
+            randomTimeValue = randomPositiveTimeValue();
+            randomKeepAlive = TimeValue.parseTimeValue(randomTimeValue, null, "OTHER:Randomizing Scroll Timeout Value");
+        } while (randomKeepAlive.seconds() > 300);
+
+        searchScrollRequest.scroll(randomTimeValue);
         return searchScrollRequest;
     }
 

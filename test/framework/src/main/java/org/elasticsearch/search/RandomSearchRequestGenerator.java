@@ -98,7 +98,15 @@ public class RandomSearchRequestGenerator {
             searchRequest.routing(randomAsciiOfLengthBetween(3, 10));
         }
         if (randomBoolean()) {
-            searchRequest.scroll(randomPositiveTimeValue());
+            TimeValue randomKeepAlive;
+            String randomTimeValue;
+            //Ensure that random time value does not conflict with 5 minute keepAlive limitation
+            do {
+                randomTimeValue = randomPositiveTimeValue();
+                randomKeepAlive = TimeValue.parseTimeValue(randomTimeValue, null, "OTHER:Randomizing Scroll Timeout Value");
+            } while (randomKeepAlive.seconds() > 300);
+
+            searchRequest.scroll(randomTimeValue);
         }
         if (randomBoolean()) {
             searchRequest.searchType(randomFrom(SearchType.values()));
@@ -135,7 +143,14 @@ public class RandomSearchRequestGenerator {
             builder.minScore(randomFloat() * 1000);
         }
         if (randomBoolean()) {
-            builder.timeout(TimeValue.parseTimeValue(randomTimeValue(), null, "timeout"));
+            //Only accept randomly generated TimeValues up to 5 minutes
+            TimeValue timeout;
+            do {
+                timeout = TimeValue.parseTimeValue(randomTimeValue(), null, "timeout");
+            }
+            while(timeout.seconds() > 300);
+
+            builder.timeout(timeout);
         }
         if (randomBoolean()) {
             builder.terminateAfter(randomIntBetween(1, 100000));

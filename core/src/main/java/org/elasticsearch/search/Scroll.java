@@ -38,18 +38,28 @@ public final class Scroll implements Writeable {
     private final TimeValue keepAlive;
 
     public Scroll(StreamInput in) throws IOException {
-        this.keepAlive = new TimeValue(in);
-    }
+        TimeValue keepAlive = new TimeValue(in);
+        Objects.requireNonNull(keepAlive,"keepAlive must not be null");
+        if(keepAlive.seconds() > 300){
+            throw new IllegalArgumentException("Keep Alive values are restricted to 5 minutes or less.");
+        }
+        this.keepAlive = keepAlive;
+}
 
     /**
      * Constructs a new scroll of the provided keep alive.
      */
     public Scroll(TimeValue keepAlive) {
-        this.keepAlive = Objects.requireNonNull(keepAlive, "keepAlive must not be null");
+        Objects.requireNonNull(keepAlive,"keepAlive must not be null");
+
+        if(keepAlive.seconds() > 300){
+            throw new IllegalArgumentException("Keep Alive values are restricted to 5 minutes or less.");
+        }
+        this.keepAlive = keepAlive;
     }
 
     /**
-     * How long the resources will be kept open to support the scroll request.
+     * How long the resources will be kept open to support the scroll request. Restricted to a 5 minute maximum.
      */
     public TimeValue keepAlive() {
         return keepAlive;
