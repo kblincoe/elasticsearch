@@ -65,7 +65,8 @@ public class ScaledFloatFieldMapperTests extends ESSingleNodeTestCase {
                 .startObject()
                 .field("field", 123)
                 .endObject()
-                .bytes(),XContentType.JSON));
+                .bytes(),
+                XContentType.JSON));
 
         IndexableField[] fields = doc.rootDoc().getFields("field");
         assertEquals(2, fields.length);
@@ -114,7 +115,8 @@ public class ScaledFloatFieldMapperTests extends ESSingleNodeTestCase {
                 .startObject()
                 .field("field", 123)
                 .endObject()
-                .bytes(),XContentType.JSON));
+                .bytes(),
+                XContentType.JSON));
 
         IndexableField[] fields = doc.rootDoc().getFields("field");
         assertEquals(1, fields.length);
@@ -137,7 +139,8 @@ public class ScaledFloatFieldMapperTests extends ESSingleNodeTestCase {
                 .startObject()
                 .field("field", 123)
                 .endObject()
-                .bytes(),XContentType.JSON));
+                .bytes(),
+                XContentType.JSON));
 
         IndexableField[] fields = doc.rootDoc().getFields("field");
         assertEquals(1, fields.length);
@@ -160,7 +163,8 @@ public class ScaledFloatFieldMapperTests extends ESSingleNodeTestCase {
                 .startObject()
                 .field("field", 123)
                 .endObject()
-                .bytes(),XContentType.JSON));
+                .bytes(),
+                XContentType.JSON));
 
         IndexableField[] fields = doc.rootDoc().getFields("field");
         assertEquals(3, fields.length);
@@ -188,7 +192,8 @@ public class ScaledFloatFieldMapperTests extends ESSingleNodeTestCase {
                 .startObject()
                 .field("field", "123")
                 .endObject()
-                .bytes(),XContentType.JSON));
+                .bytes(),
+                XContentType.JSON));
 
         IndexableField[] fields = doc.rootDoc().getFields("field");
         assertEquals(2, fields.length);
@@ -211,7 +216,8 @@ public class ScaledFloatFieldMapperTests extends ESSingleNodeTestCase {
                 .startObject()
                 .field("field", "123")
                 .endObject()
-                .bytes(),XContentType.JSON));
+                .bytes(),
+                XContentType.JSON));
         MapperParsingException e = expectThrows(MapperParsingException.class, runnable);
         assertThat(e.getCause().getMessage(), containsString("passed as String"));
     }
@@ -230,7 +236,8 @@ public class ScaledFloatFieldMapperTests extends ESSingleNodeTestCase {
                 .startObject()
                 .field("field", "a")
                 .endObject()
-                .bytes(),XContentType.JSON));
+                .bytes(),
+                XContentType.JSON));
         MapperParsingException e = expectThrows(MapperParsingException.class, runnable);
         assertThat(e.getCause().getMessage(), containsString("For input string: \"a\""));
 
@@ -245,7 +252,8 @@ public class ScaledFloatFieldMapperTests extends ESSingleNodeTestCase {
                 .startObject()
                 .field("field", "a")
                 .endObject()
-                .bytes(),XContentType.JSON));
+                .bytes(),
+                XContentType.JSON));
 
         IndexableField[] fields = doc.rootDoc().getFields("field");
         assertEquals(0, fields.length);
@@ -269,7 +277,8 @@ public class ScaledFloatFieldMapperTests extends ESSingleNodeTestCase {
                 .startObject()
                 .nullField("field")
                 .endObject()
-                .bytes(),XContentType.JSON));
+                .bytes(),
+                XContentType.JSON));
         assertArrayEquals(new IndexableField[0], doc.rootDoc().getFields("field"));
 
         mapping = XContentFactory.jsonBuilder().startObject()
@@ -290,7 +299,8 @@ public class ScaledFloatFieldMapperTests extends ESSingleNodeTestCase {
                 .startObject()
                 .nullField("field")
                 .endObject()
-                .bytes(),XContentType.JSON));
+                .bytes(),
+                XContentType.JSON));
         IndexableField[] fields = doc.rootDoc().getFields("field");
         assertEquals(2, fields.length);
         IndexableField pointField = fields[0];

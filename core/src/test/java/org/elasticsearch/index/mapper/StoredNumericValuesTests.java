@@ -77,7 +77,8 @@ public class StoredNumericValuesTests extends ESSingleNodeTestCase {
                     .field("field9", "2016-04-05")
                     .field("field10", true)
                 .endObject()
-                .bytes(),XContentType.JSON));
+                .bytes(),
+                XContentType.JSON));
 
         writer.addDocument(doc.rootDoc());
 

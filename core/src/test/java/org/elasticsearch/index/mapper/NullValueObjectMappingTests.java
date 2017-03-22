@@ -43,7 +43,8 @@ public class NullValueObjectMappingTests extends ESSingleNodeTestCase {
                 .startObject("obj1").endObject()
                 .field("value1", "test1")
                 .endObject()
-                .bytes(),XContentType.JSON));
+                .bytes(),
+                XContentType.JSON));
 
         assertThat(doc.rootDoc().get("value1"), equalTo("test1"));
 
@@ -52,7 +53,8 @@ public class NullValueObjectMappingTests extends ESSingleNodeTestCase {
                 .nullField("obj1")
                 .field("value1", "test1")
                 .endObject()
-                .bytes(),XContentType.JSON));
+                .bytes(),
+                XContentType.JSON));
 
         assertThat(doc.rootDoc().get("value1"), equalTo("test1"));
 
@@ -61,7 +63,8 @@ public class NullValueObjectMappingTests extends ESSingleNodeTestCase {
                 .startObject("obj1").field("field", "value").endObject()
                 .field("value1", "test1")
                 .endObject()
-                .bytes(),XContentType.JSON));
+                .bytes(),
+                XContentType.JSON));
 
         assertThat(doc.rootDoc().get("obj1.field"), equalTo("value"));
         assertThat(doc.rootDoc().get("value1"), equalTo("test1"));

@@ -96,7 +96,8 @@ public class FieldNamesFieldMapperTests extends ESSingleNodeTestCase {
                         .field("c", 42)
                     .endObject()
                 .endObject()
-                .bytes(),XContentType.JSON));
+                .bytes(),
+                XContentType.JSON));
 
         assertFieldNames(set("a", "a.keyword", "b", "b.c", "_uid", "_type", "_version", "_seq_no", "_primary_term", "_source"), doc);
     }
@@ -113,7 +114,8 @@ public class FieldNamesFieldMapperTests extends ESSingleNodeTestCase {
             .startObject()
             .field("field", "value")
             .endObject()
-            .bytes(),XContentType.JSON));
+            .bytes(),
+            XContentType.JSON));
 
         assertFieldNames(set("field", "field.keyword", "_uid", "_type", "_version", "_seq_no", "_primary_term", "_source"), doc);
     }
@@ -130,7 +132,8 @@ public class FieldNamesFieldMapperTests extends ESSingleNodeTestCase {
             .startObject()
             .field("field", "value")
             .endObject()
-            .bytes(),XContentType.JSON));
+            .bytes(),
+            XContentType.JSON));
 
         assertNull(doc.rootDoc().get("_field_names"));
     }
@@ -245,7 +248,8 @@ public class FieldNamesFieldMapperTests extends ESSingleNodeTestCase {
                 queryShardContext);
         String mapping = XContentFactory.jsonBuilder().startObject().startObject("type").endObject().endObject().string();
         DocumentMapper mapper = parser.parse("type", new CompressedXContent(mapping));
-        ParsedDocument parsedDocument = mapper.parse(SourceToParse.source("index", "type", "id", new BytesArray("{}"),XContentType.JSON));
+        ParsedDocument parsedDocument = mapper.parse(SourceToParse.source("index", "type", "id", new BytesArray("{}"),
+                XContentType.JSON));
         IndexableField[] fields = parsedDocument.rootDoc().getFields(FieldNamesFieldMapper.NAME);
         boolean found = false;
         for (IndexableField f : fields) {

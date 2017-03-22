@@ -82,7 +82,8 @@ public class TextFieldMapperTests extends ESSingleNodeTestCase {
                 .startObject()
                 .field("field", "1234")
                 .endObject()
-                .bytes(),XContentType.JSON));
+                .bytes(),
+                XContentType.JSON));
 
         IndexableField[] fields = doc.rootDoc().getFields("field");
         assertEquals(1, fields.length);
@@ -113,7 +114,8 @@ public class TextFieldMapperTests extends ESSingleNodeTestCase {
                 .startObject()
                 .field("field", "1234")
                 .endObject()
-                .bytes(),XContentType.JSON));
+                .bytes(),
+                XContentType.JSON));
 
         IndexableField[] fields = doc.rootDoc().getFields("field");
         assertEquals(1, fields.length);
@@ -133,7 +135,8 @@ public class TextFieldMapperTests extends ESSingleNodeTestCase {
                 .startObject()
                 .field("field", "1234")
                 .endObject()
-                .bytes(),XContentType.JSON));
+                .bytes(),
+                XContentType.JSON));
 
         IndexableField[] fields = doc.rootDoc().getFields("field");
         assertEquals(0, fields.length);
@@ -155,7 +158,8 @@ public class TextFieldMapperTests extends ESSingleNodeTestCase {
                 .startObject()
                 .field("field", "1234")
                 .endObject()
-                .bytes(),XContentType.JSON));
+                .bytes(),
+                XContentType.JSON));
 
         IndexableField[] fields = doc.rootDoc().getFields("field");
         assertEquals(1, fields.length);
@@ -181,7 +185,8 @@ public class TextFieldMapperTests extends ESSingleNodeTestCase {
         for (String option : supportedOptions.keySet()) {
             jsonDoc.field(option, "1234");
         }
-        ParsedDocument doc = mapper.parse(SourceToParse.source("test", "type", "1", jsonDoc.endObject().bytes(),XContentType.JSON));
+        ParsedDocument doc = mapper.parse(SourceToParse.source("test", "type", "1", jsonDoc.endObject().bytes(), 
+                XContentType.JSON));
 
         for (Map.Entry<String, IndexOptions> entry : supportedOptions.entrySet()) {
             String field = entry.getKey();
@@ -206,7 +211,8 @@ public class TextFieldMapperTests extends ESSingleNodeTestCase {
                 .startObject()
                 .array("field", new String[] {"a", "b"})
                 .endObject()
-                .bytes(),XContentType.JSON));
+                .bytes(),
+                XContentType.JSON));
 
         IndexableField[] fields = doc.rootDoc().getFields("field");
         assertEquals(2, fields.length);
@@ -245,7 +251,8 @@ public class TextFieldMapperTests extends ESSingleNodeTestCase {
                 .startObject()
                 .array("field", new String[] {"a", "b"})
                 .endObject()
-                .bytes(),XContentType.JSON));
+                .bytes(),
+                XContentType.JSON));
 
         IndexableField[] fields = doc.rootDoc().getFields("field");
         assertEquals(2, fields.length);
@@ -406,7 +413,8 @@ public class TextFieldMapperTests extends ESSingleNodeTestCase {
                 .field("field5", "1234")
                 .field("field6", "1234")
                 .endObject()
-                .bytes(),XContentType.JSON));
+                .bytes(),
+                XContentType.JSON));
 
         assertThat(doc.rootDoc().getField("field1").fieldType().storeTermVectors(), equalTo(false));
         assertThat(doc.rootDoc().getField("field1").fieldType().storeTermVectorOffsets(), equalTo(false));

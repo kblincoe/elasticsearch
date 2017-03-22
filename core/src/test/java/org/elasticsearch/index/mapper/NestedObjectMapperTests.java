@@ -48,7 +48,8 @@ public class NestedObjectMapperTests extends ESSingleNodeTestCase {
                 .field("field", "value")
                 .nullField("nested1")
                 .endObject()
-                .bytes(),XContentType.JSON));
+                .bytes(),
+                XContentType.JSON));
 
         assertThat(doc.docs().size(), equalTo(1));
 
@@ -57,7 +58,8 @@ public class NestedObjectMapperTests extends ESSingleNodeTestCase {
                 .field("field", "value")
                 .startArray("nested").endArray()
                 .endObject()
-                .bytes(),XContentType.JSON));
+                .bytes(),
+                XContentType.JSON));
 
         assertThat(doc.docs().size(), equalTo(1));
     }
@@ -78,7 +80,8 @@ public class NestedObjectMapperTests extends ESSingleNodeTestCase {
                 .field("field", "value")
                 .startObject("nested1").field("field1", "1").field("field2", "2").endObject()
                 .endObject()
-                .bytes(),XContentType.JSON));
+                .bytes(),
+                XContentType.JSON));
 
         assertThat(doc.docs().size(), equalTo(2));
         assertThat(doc.docs().get(0).get(TypeFieldMapper.NAME), equalTo(nested1Mapper.nestedTypePathAsString()));
@@ -96,7 +99,8 @@ public class NestedObjectMapperTests extends ESSingleNodeTestCase {
                 .startObject().field("field1", "3").field("field2", "4").endObject()
                 .endArray()
                 .endObject()
-                .bytes(),XContentType.JSON));
+                .bytes(),
+                XContentType.JSON));
 
         assertThat(doc.docs().size(), equalTo(3));
         assertThat(doc.docs().get(0).get(TypeFieldMapper.NAME), equalTo(nested1Mapper.nestedTypePathAsString()));
@@ -136,7 +140,8 @@ public class NestedObjectMapperTests extends ESSingleNodeTestCase {
                 .startObject().field("field1", "4").startArray("nested2").startObject().field("field2", "5").endObject().startObject().field("field2", "6").endObject().endArray().endObject()
                 .endArray()
                 .endObject()
-                .bytes(),XContentType.JSON));
+                .bytes(),
+                XContentType.JSON));
 
         assertThat(doc.docs().size(), equalTo(7));
         assertThat(doc.docs().get(0).get("nested1.nested2.field2"), equalTo("6"));
@@ -187,7 +192,8 @@ public class NestedObjectMapperTests extends ESSingleNodeTestCase {
                 .startObject().field("field1", "4").startArray("nested2").startObject().field("field2", "5").endObject().startObject().field("field2", "6").endObject().endArray().endObject()
                 .endArray()
                 .endObject()
-                .bytes(),XContentType.JSON));
+                .bytes(),
+                XContentType.JSON));
 
         assertThat(doc.docs().size(), equalTo(7));
         assertThat(doc.docs().get(0).get("nested1.nested2.field2"), equalTo("6"));
@@ -238,7 +244,8 @@ public class NestedObjectMapperTests extends ESSingleNodeTestCase {
                 .startObject().field("field1", "4").startArray("nested2").startObject().field("field2", "5").endObject().startObject().field("field2", "6").endObject().endArray().endObject()
                 .endArray()
                 .endObject()
-                .bytes(),XContentType.JSON));
+                .bytes(),
+                XContentType.JSON));
 
         assertThat(doc.docs().size(), equalTo(7));
         assertThat(doc.docs().get(0).get("nested1.nested2.field2"), equalTo("6"));
@@ -289,7 +296,8 @@ public class NestedObjectMapperTests extends ESSingleNodeTestCase {
                 .startObject().field("field1", "4").startArray("nested2").startObject().field("field2", "5").endObject().startObject().field("field2", "6").endObject().endArray().endObject()
                 .endArray()
                 .endObject()
-                .bytes(),XContentType.JSON));
+                .bytes(),
+                XContentType.JSON));
 
         assertThat(doc.docs().size(), equalTo(7));
         assertThat(doc.docs().get(0).get("nested1.nested2.field2"), equalTo("6"));
@@ -335,7 +343,8 @@ public class NestedObjectMapperTests extends ESSingleNodeTestCase {
                 .startObject().field("field1", "4").endObject()
                 .endArray()
                 .endObject()
-                .bytes(),XContentType.JSON));
+                .bytes(),
+                XContentType.JSON));
 
         assertThat(doc.docs().size(), equalTo(3));
         assertThat(doc.docs().get(0).get("nested1.field1"), equalTo("4"));

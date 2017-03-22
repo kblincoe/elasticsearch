@@ -56,7 +56,8 @@ public class DoubleIndexingDocTests extends ESSingleNodeTestCase {
                 .field("field4", "2010-01-01")
                 .startArray("field5").value(1).value(2).value(3).endArray()
                 .endObject()
-                .bytes(),XContentType.JSON));
+                .bytes(),
+                XContentType.JSON));
         assertNotNull(doc.dynamicMappingsUpdate());
         client().admin().indices().preparePutMapping("test").setType("type")
             .setSource(doc.dynamicMappingsUpdate().toString(), XContentType.JSON).get();

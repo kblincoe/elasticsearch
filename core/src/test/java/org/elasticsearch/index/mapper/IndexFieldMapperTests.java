@@ -55,7 +55,8 @@ public class IndexFieldMapperTests extends ESSingleNodeTestCase {
                 .startObject()
                 .field("field", "value")
                 .endObject()
-                .bytes(),XContentType.JSON));
+                .bytes(),
+                XContentType.JSON));
 
         assertThat(doc.rootDoc().get("_index"), nullValue());
         assertThat(doc.rootDoc().get("field"), equalTo("value"));

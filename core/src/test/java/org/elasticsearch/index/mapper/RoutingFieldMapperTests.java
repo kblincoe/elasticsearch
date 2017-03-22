@@ -41,7 +41,8 @@ public class RoutingFieldMapperTests extends ESSingleNodeTestCase {
             .startObject()
             .field("field", "value")
             .endObject()
-            .bytes(), XContentType.JSON).routing("routing_value"));
+            .bytes(), 
+            XContentType.JSON).routing("routing_value"));
 
         assertThat(doc.rootDoc().get("_routing"), equalTo("routing_value"));
         assertThat(doc.rootDoc().get("field"), equalTo("value"));

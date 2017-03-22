@@ -63,7 +63,8 @@ public class DynamicMappingTests extends ESSingleNodeTestCase {
                 .field("field1", "value1")
                 .field("field2", "value2")
                 .endObject()
-                .bytes(),XContentType.JSON));
+                .bytes(),
+                XContentType.JSON));
 
         assertThat(doc.rootDoc().get("field1"), equalTo("value1"));
         assertThat(doc.rootDoc().get("field2"), equalTo("value2"));
@@ -84,7 +85,8 @@ public class DynamicMappingTests extends ESSingleNodeTestCase {
                 .field("field1", "value1")
                 .field("field2", "value2")
                 .endObject()
-                .bytes(),XContentType.JSON));
+                .bytes(),
+                XContentType.JSON));
 
         assertThat(doc.rootDoc().get("field1"), equalTo("value1"));
         assertThat(doc.rootDoc().get("field2"), nullValue());
@@ -106,7 +108,8 @@ public class DynamicMappingTests extends ESSingleNodeTestCase {
                 .field("field1", "value1")
                 .field("field2", "value2")
                 .endObject()
-                .bytes(),XContentType.JSON)));
+                .bytes(),
+                XContentType.JSON)));
         assertThat(e.getMessage(), equalTo("mapping set to strict, dynamic introduction of [field2] within [type] is not allowed"));
 
         e = expectThrows(StrictDynamicMappingException.class, () -> defaultMapper.parse(SourceToParse.source("test", "type", "1", XContentFactory.jsonBuilder()
@@ -114,7 +117,8 @@ public class DynamicMappingTests extends ESSingleNodeTestCase {
                     .field("field1", "value1")
                     .field("field2", (String) null)
                     .endObject()
-                    .bytes(),XContentType.JSON)));
+                    .bytes(),
+                    XContentType.JSON)));
         assertThat(e.getMessage(), equalTo("mapping set to strict, dynamic introduction of [field2] within [type] is not allowed"));
     }
 
@@ -136,7 +140,8 @@ public class DynamicMappingTests extends ESSingleNodeTestCase {
                 .field("field2", "value2")
                 .endObject()
                 .endObject()
-                .bytes(),XContentType.JSON));
+                .bytes(),
+                XContentType.JSON));
 
         assertThat(doc.rootDoc().get("obj1.field1"), equalTo("value1"));
         assertThat(doc.rootDoc().get("obj1.field2"), nullValue());
@@ -161,7 +166,8 @@ public class DynamicMappingTests extends ESSingleNodeTestCase {
                     .field("field2", "value2")
                     .endObject()
                     .endObject()
-                    .bytes(),XContentType.JSON)));
+                    .bytes(),
+                    XContentType.JSON)));
         assertThat(e.getMessage(), equalTo("mapping set to strict, dynamic introduction of [field2] within [obj1] is not allowed"));
     }
 
@@ -585,7 +591,8 @@ public class DynamicMappingTests extends ESSingleNodeTestCase {
                 .field("baz", (double) 3.2f) // double that can be accurately represented as a float
                 .field("quux", "3.2") // float detected through numeric detection
                 .endObject().bytes();
-        ParsedDocument parsedDocument = mapper.parse(SourceToParse.source("index", "type", "id", source,XContentType.JSON));
+        ParsedDocument parsedDocument = mapper.parse(SourceToParse.source("index", "type", "id", source,
+                XContentType.JSON));
         Mapping update = parsedDocument.dynamicMappingsUpdate();
         assertNotNull(update);
         assertThat(((FieldMapper) update.root().getMapper("foo")).fieldType().typeName(), equalTo("float"));
@@ -608,7 +615,8 @@ public class DynamicMappingTests extends ESSingleNodeTestCase {
                 .field("s_long", "100")
                 .field("s_double", "100.0")
                 .endObject()
-                .bytes(),XContentType.JSON));
+                .bytes(),
+                XContentType.JSON));
         assertNotNull(doc.dynamicMappingsUpdate());
         client().admin().indices().preparePutMapping("test").setType("type")
             .setSource(doc.dynamicMappingsUpdate().toString(), XContentType.JSON).get();
@@ -634,7 +642,8 @@ public class DynamicMappingTests extends ESSingleNodeTestCase {
                 .field("s_long", "100")
                 .field("s_double", "100.0")
                 .endObject()
-                .bytes(),XContentType.JSON));
+                .bytes(),
+                XContentType.JSON));
         assertNotNull(doc.dynamicMappingsUpdate());
         assertAcked(client().admin().indices().preparePutMapping("test").setType("type")
             .setSource(doc.dynamicMappingsUpdate().toString(), XContentType.JSON).get());
@@ -683,7 +692,8 @@ public class DynamicMappingTests extends ESSingleNodeTestCase {
                     .field("date2", "2016-11-20")
                     .field("date3", "2016-11-20")
                 .endObject()
-                .bytes(),XContentType.JSON));
+                .bytes(),
+                XContentType.JSON));
         assertNotNull(doc.dynamicMappingsUpdate());
         assertAcked(client().admin().indices().preparePutMapping("test").setType("type")
             .setSource(doc.dynamicMappingsUpdate().toString(), XContentType.JSON).get());
