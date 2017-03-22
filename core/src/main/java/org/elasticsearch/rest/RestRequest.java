@@ -76,7 +76,9 @@ public abstract class RestRequest implements ToXContent.Params {
             this.rawPath = uri;
         } else {
             this.rawPath = uri.substring(0, pathEndPos);
-            RestUtils.decodeQueryString(uri, pathEndPos + 1, params);
+            // If the user passes a single % symbol to the query, replace it with %25
+            String percentUri = uri.replace("%", "%25");
+            RestUtils.decodeQueryString(percentUri, pathEndPos + 1, params);
         }
         this.params = params;
         this.headers = Collections.unmodifiableMap(headers);

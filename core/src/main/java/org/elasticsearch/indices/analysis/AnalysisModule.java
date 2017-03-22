@@ -227,7 +227,7 @@ public final class AnalysisModule {
         tokenFilters.register("stemmer", StemmerTokenFilterFactory::new);
         tokenFilters.register("word_delimiter", WordDelimiterTokenFilterFactory::new);
         tokenFilters.register("word_delimiter_graph", WordDelimiterGraphTokenFilterFactory::new);
-        tokenFilters.register("delimited_payload", DelimitedPayloadTokenFilterFactory::new);
+        tokenFilters.register("delimited_payload_filter", DelimitedPayloadTokenFilterFactory::new);
         tokenFilters.register("elision", ElisionTokenFilterFactory::new);
         tokenFilters.register("flatten_graph", FlattenGraphTokenFilterFactory::new);
         tokenFilters.register("keep", requriesAnalysisSettings(KeepWordFilterFactory::new));
