@@ -176,5 +176,15 @@ public class RestClientBuilderTests extends RestClientTestCase {
             assertThat(e.getMessage(), containsString(pathPrefix));
         }
     }
+    
+    public void testSetSystemProperties(){
+    	System.setProperty("http.maxConnections", "??");   	
+    	try (RestClient restClient = RestClient.builder(new HttpHost("localhost", 9200)).build()) {       
+    			 fail("should have failed");    
+		} catch (NumberFormatException | IOException e1) {
+			System.clearProperty("http.maxConnections");
+		} 
+	 
+    }
 
 }
