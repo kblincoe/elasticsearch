@@ -891,10 +891,10 @@ public final class XMoreLikeThis {
      * @param fieldName Used by analyzer for any special per-field analysis
      */
     private void addTermFrequencies(Reader r, Map<String, Int> termFreqMap, String fieldName)
-        throws IOException {
+            throws IOException {
         if (analyzer == null) {
             throw new UnsupportedOperationException("To use MoreLikeThis without " +
-                "term vectors, you must provide an Analyzer");
+                    "term vectors, you must provide an Analyzer");
         }
         try (TokenStream ts = analyzer.tokenStream(fieldName, r)) {
             int tokenCount = 0;

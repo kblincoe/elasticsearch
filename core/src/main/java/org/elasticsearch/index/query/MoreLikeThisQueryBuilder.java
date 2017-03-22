@@ -93,7 +93,7 @@ public class MoreLikeThisQueryBuilder extends AbstractQueryBuilder<MoreLikeThisQ
     public static final boolean DEFAULT_FAIL_ON_UNSUPPORTED_FIELDS = true;
 
     private static final Set<Class<? extends MappedFieldType>> SUPPORTED_FIELD_TYPES = new HashSet<>(
-        Arrays.asList(TextFieldType.class, KeywordFieldType.class));
+            Arrays.asList(TextFieldType.class, KeywordFieldType.class));
 
     private interface Field {
         ParseField FIELDS = new ParseField("fields");
@@ -349,16 +349,16 @@ public class MoreLikeThisQueryBuilder extends AbstractQueryBuilder<MoreLikeThisQ
          */
         public TermVectorsRequest toTermVectorsRequest() {
             TermVectorsRequest termVectorsRequest = new TermVectorsRequest(index, type, id)
-                .selectedFields(fields)
-                .routing(routing)
-                .version(version)
-                .versionType(versionType)
-                .perFieldAnalyzer(perFieldAnalyzer)
-                .positions(false)  // ensures these following parameters are never set
-                .offsets(false)
-                .payloads(false)
-                .fieldStatistics(false)
-                .termStatistics(false);
+                    .selectedFields(fields)
+                    .routing(routing)
+                    .version(version)
+                    .versionType(versionType)
+                    .perFieldAnalyzer(perFieldAnalyzer)
+                    .positions(false)  // ensures these following parameters are never set
+                    .offsets(false)
+                    .payloads(false)
+                    .fieldStatistics(false)
+                    .termStatistics(false);
             // for artificial docs to make sure that the id has changed in the item too
             if (doc != null) {
                 termVectorsRequest.doc(doc, true, xContentType);
@@ -395,7 +395,7 @@ public class MoreLikeThisQueryBuilder extends AbstractQueryBuilder<MoreLikeThisQ
                             item.fields(fields.toArray(new String[fields.size()]));
                         } else {
                             throw new ElasticsearchParseException(
-                                "failed to parse More Like This item. field [fields] must be an array");
+                                    "failed to parse More Like This item. field [fields] must be an array");
                         }
                     } else if (Field.PER_FIELD_ANALYZER.match(currentFieldName)) {
                         item.perFieldAnalyzer(TermVectorsRequest.readPerFieldAnalyzer(parser.map()));
@@ -404,21 +404,21 @@ public class MoreLikeThisQueryBuilder extends AbstractQueryBuilder<MoreLikeThisQ
                     } else if ("_version".equals(currentFieldName) || "version".equals(currentFieldName)) {
                         item.version = parser.longValue();
                     } else if ("_version_type".equals(currentFieldName) || "_versionType".equals(currentFieldName)
-                        || "version_type".equals(currentFieldName) || "versionType".equals(currentFieldName)) {
+                            || "version_type".equals(currentFieldName) || "versionType".equals(currentFieldName)) {
                         item.versionType = VersionType.fromString(parser.text());
                     } else {
                         throw new ElasticsearchParseException(
-                            "failed to parse More Like This item. unknown field [{}]", currentFieldName);
+                                "failed to parse More Like This item. unknown field [{}]", currentFieldName);
                     }
                 }
             }
             if (item.id != null && item.doc != null) {
                 throw new ElasticsearchParseException(
-                    "failed to parse More Like This item. either [id] or [doc] can be specified, but not both!");
+                        "failed to parse More Like This item. either [id] or [doc] can be specified, but not both!");
             }
             if (item.id == null && item.doc == null) {
                 throw new ElasticsearchParseException(
-                    "failed to parse More Like This item. neither [id] nor [doc] is specified!");
+                        "failed to parse More Like This item. neither [id] nor [doc] is specified!");
             }
             return item;
         }
@@ -471,7 +471,7 @@ public class MoreLikeThisQueryBuilder extends AbstractQueryBuilder<MoreLikeThisQ
         @Override
         public int hashCode() {
             return Objects.hash(index, type, id, doc, Arrays.hashCode(fields), perFieldAnalyzer, routing,
-                version, versionType);
+                    version, versionType);
         }
 
         @Override
@@ -480,14 +480,14 @@ public class MoreLikeThisQueryBuilder extends AbstractQueryBuilder<MoreLikeThisQ
             if (!(o instanceof Item)) return false;
             Item other = (Item) o;
             return Objects.equals(index, other.index) &&
-                Objects.equals(type, other.type) &&
-                Objects.equals(id, other.id) &&
-                Objects.equals(doc, other.doc) &&
-                Arrays.equals(fields, other.fields) &&  // otherwise we are comparing pointers
-                Objects.equals(perFieldAnalyzer, other.perFieldAnalyzer) &&
-                Objects.equals(routing, other.routing) &&
-                Objects.equals(version, other.version) &&
-                Objects.equals(versionType, other.versionType);
+                    Objects.equals(type, other.type) &&
+                    Objects.equals(id, other.id) &&
+                    Objects.equals(doc, other.doc) &&
+                    Arrays.equals(fields, other.fields) &&  // otherwise we are comparing pointers
+                    Objects.equals(perFieldAnalyzer, other.perFieldAnalyzer) &&
+                    Objects.equals(routing, other.routing) &&
+                    Objects.equals(version, other.version) &&
+                    Objects.equals(versionType, other.versionType);
         }
     }
 
@@ -1139,7 +1139,7 @@ public class MoreLikeThisQueryBuilder extends AbstractQueryBuilder<MoreLikeThisQ
         if (item.type() == null) {
             if (context.queryTypes().size() > 1) {
                 throw new QueryShardException(context,
-                    "ambiguous type for item with id: " + item.id() + " and index: " + item.index());
+                        "ambiguous type for item with id: " + item.id() + " and index: " + item.index());
             } else {
                 item.type(context.queryTypes().iterator().next());
             }
@@ -1197,33 +1197,32 @@ public class MoreLikeThisQueryBuilder extends AbstractQueryBuilder<MoreLikeThisQ
     @Override
     protected int doHashCode() {
         return Objects.hash(Arrays.hashCode(fields), Arrays.hashCode(likeTexts),
-            Arrays.hashCode(unlikeTexts), Arrays.hashCode(likeItems), Arrays.hashCode(unlikeItems),
-            maxQueryTerms, minTermFreq, minDocFreq, maxDocFreq, maxDocFreqPct, minWordLength, maxWordLength,
-            Arrays.hashCode(stopWords), analyzer, minimumShouldMatch, boostTerms, include, failOnUnsupportedField);
+                Arrays.hashCode(unlikeTexts), Arrays.hashCode(likeItems), Arrays.hashCode(unlikeItems),
+                maxQueryTerms, minTermFreq, minDocFreq, maxDocFreq, maxDocFreqPct, minWordLength, maxWordLength,
+                Arrays.hashCode(stopWords), analyzer, minimumShouldMatch, boostTerms, include, failOnUnsupportedField);
 
     }
 
     @Override
     protected boolean doEquals(MoreLikeThisQueryBuilder other) {
         return Arrays.equals(fields, other.fields) &&
-
-            Arrays.equals(likeTexts, other.likeTexts) &&
-            Arrays.equals(unlikeTexts, other.unlikeTexts) &&
-            Arrays.equals(likeItems, other.likeItems) &&
-            Arrays.equals(unlikeItems, other.unlikeItems) &&
-            Objects.equals(maxQueryTerms, other.maxQueryTerms) &&
-            Objects.equals(minTermFreq, other.minTermFreq) &&
-            Objects.equals(minDocFreq, other.minDocFreq) &&
-            Objects.equals(maxDocFreq, other.maxDocFreq) &&
-            Objects.equals(maxDocFreqPct, other.maxDocFreqPct) &&
-            Objects.equals(minWordLength, other.minWordLength) &&
-            Objects.equals(maxWordLength, other.maxWordLength) &&
-            Arrays.equals(stopWords, other.stopWords) &&  // otherwise we are comparing pointers
-            Objects.equals(analyzer, other.analyzer) &&
-            Objects.equals(minimumShouldMatch, other.minimumShouldMatch) &&
-            Objects.equals(boostTerms, other.boostTerms) &&
-            Objects.equals(include, other.include) &&
-            Objects.equals(failOnUnsupportedField, other.failOnUnsupportedField);
+                Arrays.equals(likeTexts, other.likeTexts) &&
+                Arrays.equals(unlikeTexts, other.unlikeTexts) &&
+                Arrays.equals(likeItems, other.likeItems) &&
+                Arrays.equals(unlikeItems, other.unlikeItems) &&
+                Objects.equals(maxQueryTerms, other.maxQueryTerms) &&
+                Objects.equals(minTermFreq, other.minTermFreq) &&
+                Objects.equals(minDocFreq, other.minDocFreq) &&
+                Objects.equals(maxDocFreq, other.maxDocFreq) &&
+                Objects.equals(maxDocFreqPct, other.maxDocFreqPct) &&
+                Objects.equals(minWordLength, other.minWordLength) &&
+                Objects.equals(maxWordLength, other.maxWordLength) &&
+                Arrays.equals(stopWords, other.stopWords) &&  // otherwise we are comparing pointers
+                Objects.equals(analyzer, other.analyzer) &&
+                Objects.equals(minimumShouldMatch, other.minimumShouldMatch) &&
+                Objects.equals(boostTerms, other.boostTerms) &&
+                Objects.equals(include, other.include) &&
+                Objects.equals(failOnUnsupportedField, other.failOnUnsupportedField);
 
 
     }
