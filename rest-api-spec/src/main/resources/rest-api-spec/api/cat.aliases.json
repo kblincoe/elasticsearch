@@ -7,8 +7,8 @@
       "paths": ["/_cat/aliases", "/_cat/aliases/{name}"],
       "parts": {
         "name": {
-          "type" : "list",
-          "description" : "A comma-separated list of alias names to return"
+          "type" : "string",
+          "description" : "A string representing a list of alias name separated by commas"
         }
       },
       "params": {
