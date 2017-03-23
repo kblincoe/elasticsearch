@@ -32,6 +32,11 @@ public class GeoHashGridTests extends BaseAggregationTestCase<GeoGridAggregation
             int precision = randomIntBetween(1, 12);
             factory.precision(precision);
         }
+        //Check for the case when a distance unit (e.g. 10km) is passed in
+        if (randomBoolean()) {
+            String precision = "10km";
+            factory.precision(precision);
+        }
         if (randomBoolean()) {
             factory.size(randomIntBetween(1, Integer.MAX_VALUE));
         }

@@ -23,6 +23,7 @@ import org.apache.lucene.index.LeafReaderContext;
 import org.apache.lucene.index.SortedNumericDocValues;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.common.geo.GeoHashUtils;
+import org.elasticsearch.common.geo.GeoUtils;
 import org.elasticsearch.common.geo.GeoPoint;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
@@ -93,6 +94,18 @@ public class GeoGridAggregationBuilder extends ValuesSourceAggregationBuilder<Va
 
     public GeoGridAggregationBuilder precision(int precision) {
         this.precision = GeoHashGridParams.checkPrecision(precision);
+        return this;
+    }
+
+    /**
+     * This overloaded method takes in a distance unit (e.g. 10km) and converts it to the appropriate precision
+     * before assigning it to the builder
+     * @param precision precision of geoHash desired by user
+     * @return the builder with updated values
+     */
+    public GeoGridAggregationBuilder precision(String precision) {
+        int distanceInMeters = GeoHashGridParams.distanceUnitToMeters(precision);
+        this.precision = GeoUtils.geoHashLevelsForPrecision(distanceInMeters);  // Convert from meters to precision
         return this;
     }
 
