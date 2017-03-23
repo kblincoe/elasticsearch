@@ -20,7 +20,7 @@ package org.elasticsearch.common.settings;
 
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.elasticsearch.common.xcontent.json.JsonXContent;
+import org.elasticsearch.common.xcontent.yaml.YamlXContent;
 import org.elasticsearch.rest.RestRequest;
 import org.elasticsearch.test.ESTestCase;
 import org.elasticsearch.test.rest.FakeRestRequest;
@@ -113,7 +113,7 @@ public class SettingsFilterTests extends ESTestCase {
         // Test using toXContent filtering
         RestRequest request = new FakeRestRequest();
         settingsFilter.addFilterSettingParams(request);
-        XContentBuilder xContentBuilder = XContentBuilder.builder(JsonXContent.jsonXContent);
+        XContentBuilder xContentBuilder = XContentBuilder.builder(YamlXContent.yamlXContent);
         xContentBuilder.startObject();
         source.toXContent(xContentBuilder, request);
         xContentBuilder.endObject();

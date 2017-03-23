@@ -55,9 +55,9 @@ public class SynonymsAnalysisTests extends ESTestCase {
         Files.copy(synonyms, config.resolve("synonyms.txt"));
         Files.copy(synonymsWordnet, config.resolve("synonyms_wordnet.txt"));
 
-        String json = "/org/elasticsearch/index/analysis/synonyms/synonyms.json";
+        String yaml = "/org/elasticsearch/index/analysis/synonyms/synonyms.yaml";
         Settings settings = Settings.builder().
-            loadFromStream(json, getClass().getResourceAsStream(json))
+            loadFromStream(yaml, getClass().getResourceAsStream(yaml))
                 .put(Environment.PATH_HOME_SETTING.getKey(), home)
                 .put(IndexMetaData.SETTING_VERSION_CREATED, Version.CURRENT).build();
 

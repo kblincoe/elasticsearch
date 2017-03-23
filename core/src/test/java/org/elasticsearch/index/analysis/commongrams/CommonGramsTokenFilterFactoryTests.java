@@ -134,9 +134,9 @@ public class CommonGramsTokenFilterFactoryTests extends ESTokenStreamTestCase {
     }
 
     public void testCommonGramsAnalysis() throws IOException {
-        String json = "/org/elasticsearch/index/analysis/commongrams/commongrams.json";
+        String yaml = "/org/elasticsearch/index/analysis/commongrams/commongrams.yaml";
         Settings settings = Settings.builder()
-                     .loadFromStream(json, getClass().getResourceAsStream(json))
+                     .loadFromStream(yaml, getClass().getResourceAsStream(yaml))
                      .put(Environment.PATH_HOME_SETTING.getKey(), createHome())
                      .build();
         {
@@ -219,9 +219,9 @@ public class CommonGramsTokenFilterFactoryTests extends ESTokenStreamTestCase {
     }
 
     public void testQueryModeCommonGramsAnalysis() throws IOException {
-        String json = "/org/elasticsearch/index/analysis/commongrams/commongrams_query_mode.json";
+        String yaml = "/org/elasticsearch/index/analysis/commongrams/commongrams_query_mode.yaml";
         Settings settings = Settings.builder()
-                .loadFromStream(json, getClass().getResourceAsStream(json))
+                .loadFromStream(yaml, getClass().getResourceAsStream(yaml))
             .put(Environment.PATH_HOME_SETTING.getKey(), createHome())
                 .build();
         {

@@ -44,7 +44,7 @@ import static org.elasticsearch.common.Strings.cleanPath;
 
 public class InternalSettingsPreparer {
 
-    private static final String[] ALLOWED_SUFFIXES = {".yml", ".yaml", ".json"};
+    private static final String[] ALLOWED_SUFFIXES = {".yml", ".yaml"};
     private static final String PROPERTY_DEFAULTS_PREFIX = "default.";
     private static final Predicate<String> PROPERTY_DEFAULTS_PREDICATE = key -> key.startsWith(PROPERTY_DEFAULTS_PREFIX);
     private static final UnaryOperator<String> STRIP_PROPERTY_DEFAULTS_PREFIX = key -> key.substring(PROPERTY_DEFAULTS_PREFIX.length());

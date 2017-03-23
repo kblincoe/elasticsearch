@@ -33,7 +33,7 @@ import java.io.StringReader;
 import static org.hamcrest.Matchers.instanceOf;
 
 public class KeepFilterFactoryTests extends ESTokenStreamTestCase {
-    private static final String RESOURCE = "/org/elasticsearch/index/analysis/keep_analysis.json";
+    private static final String RESOURCE = "/org/elasticsearch/index/analysis/keep_analysis.yaml";
 
     public void testLoadWithoutSettings() throws IOException {
         ESTestCase.TestAnalysis analysis = AnalysisTestsHelper.createTestAnalysisFromClassPath(createTempDir(), RESOURCE);
