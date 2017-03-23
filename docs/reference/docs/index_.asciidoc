@@ -36,7 +36,8 @@ The result of the above index operation is:
     "took" : 0
 }
 --------------------------------------------------
-// TESTRESPONSE[s/"successful" : 2/"successful" : 1/ s/"took" : 0/"took" : $body.took/]
+// TESTRESPONSE[s/"successful" : 2/"successful" : 1/]
+// TESTRESPONSE[s/"took" : 0/"took" : $body.took/]
 
 The `_shards` header provides information about the replication process of the index operation.
 
@@ -235,8 +236,9 @@ The result of the above index operation is:
     "took" : 0
 }
 --------------------------------------------------
-// TESTRESPONSE[s/6a8ca01c-7896-48e9-81cc-9f70661fcb32/$body._id/ s/"successful" : 2/"successful" : 1/ s/"took" : 0/"took" : $body.took/]
-
+// TESTRESPONSE[s/6a8ca01c-7896-48e9-81cc-9f70661fcb32/$body._id/]
+// TESTRESPONSE[s/"successful" : 2/"successful" : 1/]
+// TESTRESPONSE[s/"took" : 0/"took" : $body.took/]
 
 [float]
 [[index-routing]]
