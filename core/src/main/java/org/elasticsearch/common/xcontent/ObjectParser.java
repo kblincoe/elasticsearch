@@ -165,7 +165,7 @@ public final class ObjectParser<Value, Context> extends AbstractObjectParser<Val
                     assert ignoreUnknownFields : "this should only be possible if configured to ignore known fields";
                     parser.skipChildren(); // noop if parser points to a value, skips children if parser is start object or start array
                 } else {
-                    fieldParser.assertSupports(name, token, currentFieldName);
+                    fieldParser.assertSupports(parser, name, token, currentFieldName);
                     parseSub(parser, fieldParser, currentFieldName, value, context);
                 }
                 fieldParser = null;
@@ -414,15 +414,26 @@ public final class ObjectParser<Value, Context> extends AbstractObjectParser<Val
             this.type = type;
         }
 
-        void assertSupports(String parserName, XContentParser.Token token, String currentFieldName) {
-            if (parseField.match(currentFieldName) == false) {
-                throw new IllegalStateException("[" + parserName  + "] parsefield doesn't accept: " + currentFieldName);
-            }
-            if (supportedTokens.contains(token) == false) {
-                throw new IllegalArgumentException(
-                        "[" + parserName + "] " + currentFieldName + " doesn't support values of type: " + token);
-            }
-        }
+        void assertSupports(XContentParser parser, String parserName, XContentParser.Token token,
+				String currentFieldName) {
+			if (parseField.match(currentFieldName) == false) {
+				throw new IllegalStateException("[" + parserName + "] parsefield doesn't accept: " + currentFieldName);
+			}
+			if (supportedTokens.contains(token) == false) {
+				if (token == XContentParser.Token.VALUE_STRING) {
+					try {
+						if ((parser.text().equals("true")) || (parser.text().equals("false"))) {
+                            return;
+						}
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+
+				throw new IllegalArgumentException(
+						"[" + parserName + "] " + currentFieldName + " doesn't support values of type: " + token);
+			}
+		}
 
         @Override
         public String toString() {
