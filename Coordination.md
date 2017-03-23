@@ -32,7 +32,6 @@ Issue number: group name (no links to elasticsearch, just the number - sort by i
 * 18543: Oink
 * 19391: FDJ
 * 20912: Evil_Engineers
-* 21312: Rocky Road
 * 21418: marathon
 * 21802: JQ
 * 21862: JTeam1
@@ -40,6 +39,7 @@ Issue number: group name (no links to elasticsearch, just the number - sort by i
 * 21946: Honey Boo Boo Fan Club
 * 21974: Krispy Belgian Cookies
 * 21978: Krispy Belgian Cookies
+* 22423: Rocky Road
 * 22530: Evil_Engineers
 * 22552: Your Choice
 * 22573: The code less traveled
