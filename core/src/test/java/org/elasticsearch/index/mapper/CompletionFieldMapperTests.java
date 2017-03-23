@@ -141,6 +141,24 @@ public class CompletionFieldMapperTests extends ESSingleNodeTestCase {
         assertThat(Boolean.valueOf(configMap.get("preserve_position_increments").toString()), is(true));
         assertThat(Integer.valueOf(configMap.get("max_input_length").toString()), is(14));
     }
+    public void testTypeParsingRejectMultiFields() throws Exception {
+        try {
+            String mapping = jsonBuilder().startObject().startObject("type1")
+                    .startObject("properties").startObject("completion")
+                    .field("type", "completion")
+                    .startObject("fields")
+                    .startObject("analyzed")
+                    .field("type","completion")
+                    .endObject().endObject()
+                    .endObject().endObject()
+                    .endObject().endObject().string();
+            DocumentMapper defaultMapper = createIndex("test").mapperService().documentMapperParser().parse("type1", new CompressedXContent(mapping));
+            fail("Supplying multi-fields to a completion type should error");
+        }
+        catch(MapperParsingException e) {
+            assertThat(e.getRootCause().getMessage(), containsString("Multi-fields"));
+        }
+    }
 
     public void testParsingMinimal() throws Exception {
         String mapping = jsonBuilder().startObject().startObject("type1")
