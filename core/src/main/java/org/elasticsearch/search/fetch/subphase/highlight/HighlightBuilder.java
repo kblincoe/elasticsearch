@@ -256,6 +256,13 @@ public class HighlightBuilder extends AbstractHighlighterBuilder<HighlightBuilde
         return builder;
     }
 
+    /*
+	 * Fixing Issue:21802
+	 * Date:24 Mar, 2017
+	 * This static blocks declare a highlight object parser before a highlight builder is initialized. Whenever 
+	 * an search in highlighting is executed, it will read the commands to memory and use them construct a 
+	 * highlight builder. 
+	 * */
     private static final BiFunction<QueryParseContext, HighlightBuilder, HighlightBuilder> PARSER;
     static {
         ObjectParser<HighlightBuilder, QueryParseContext> parser = new ObjectParser<>("highlight");
@@ -265,6 +272,7 @@ public class HighlightBuilder extends AbstractHighlighterBuilder<HighlightBuilde
                 FIELDS_FIELD);
         PARSER = setupParser(parser);
     }
+    
     public static HighlightBuilder fromXContent(QueryParseContext c) {
         return PARSER.apply(c, new HighlightBuilder());
     }

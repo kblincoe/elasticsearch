@@ -593,6 +593,13 @@ public abstract class AbstractHighlighterBuilder<HB extends AbstractHighlighterB
         }
     }
 
+    /*
+	 * Fixing Issue:21802
+	 * Date:24 Mar, 2017
+	 * This static block is called by its subclass HighlightBuilder, after creating a highlight object 
+	 * parser, it continues to read json commands and allocates them to the fields in this object, and 
+	 * will check the syntax of these commands.
+	 * */
     static <HB extends AbstractHighlighterBuilder<HB>> BiFunction<QueryParseContext, HB, HB> setupParser(
             ObjectParser<HB, QueryParseContext> parser) {
         parser.declareStringArray(fromList(String.class, HB::preTags), PRE_TAGS_FIELD);
@@ -626,8 +633,15 @@ public abstract class AbstractHighlighterBuilder<HB extends AbstractHighlighterB
             }
         }, HIGHLIGHT_QUERY_FIELD);
         return (QueryParseContext c, HB hb) -> {
-            try {
+            try {           	
+            	/*
+            	 * Fixing Issue:21802
+            	 * Date:24 Mar, 2017
+            	 * This method commence a syntax checking on the inputted json commands. It
+            	 * guarantees that no syntax error exists before searching any data.
+            	 * */
                 parser.parse(c.parser(), hb, c);
+                
                 if (hb.preTags() != null && hb.postTags() == null) {
                     throw new ParsingException(c.parser().getTokenLocation(),
                             "pre_tags are set but post_tags are not set");

@@ -164,8 +164,15 @@ public final class ObjectParser<Value, Context> extends AbstractObjectParser<Val
                 if (fieldParser == null) {
                     assert ignoreUnknownFields : "this should only be possible if configured to ignore known fields";
                     parser.skipChildren(); // noop if parser points to a value, skips children if parser is start object or start array
-                } else {
+                } else {	
+                	/*
+                	 * Fixing Issue:21802
+                	 * Date:24 Mar, 2017
+                	 * Add local variable "parser" to match the modified method assertSupports. "parser" is used to 
+                	 * get current value (according to the issue here requires String value).
+                	 * */
                     fieldParser.assertSupports(parser, name, token, currentFieldName);
+                    
                     parseSub(parser, fieldParser, currentFieldName, value, context);
                 }
                 fieldParser = null;
@@ -414,6 +421,13 @@ public final class ObjectParser<Value, Context> extends AbstractObjectParser<Val
             this.type = type;
         }
 
+        /*
+    	 * Fixing Issue:21802
+    	 * Date:24 Mar, 2017
+    	 * Add a new formal parameter with type of XContentParser to the methods. 
+    	 * Add new logic in order to filter String value "true" and "false", to ensure that these values will 
+    	 * not trigger an IllegalArgumentException. 
+    	 * */
         void assertSupports(XContentParser parser, String parserName, XContentParser.Token token,
 				String currentFieldName) {
 			if (parseField.match(currentFieldName) == false) {
