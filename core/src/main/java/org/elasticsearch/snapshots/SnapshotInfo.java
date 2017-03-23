@@ -67,6 +67,7 @@ public final class SnapshotInfo implements Comparable<SnapshotInfo>, ToXContent,
     private static final String NAME = "name";
     private static final String TOTAL_SHARDS = "total_shards";
     private static final String SUCCESSFUL_SHARDS = "successful_shards";
+    private static final String HAS_GLOBAL_STATE = "has_global_state";
 
     private static final Version VERSION_INCOMPATIBLE_INTRODUCED = Version.V_5_2_0_UNRELEASED;
 
@@ -86,23 +87,26 @@ public final class SnapshotInfo implements Comparable<SnapshotInfo>, ToXContent,
 
     private final int successfulShards;
 
+    private final boolean hasGlobalState;
+
     @Nullable
     private final Version version;
 
     private final List<SnapshotShardFailure> shardFailures;
 
     public SnapshotInfo(SnapshotId snapshotId, List<String> indices, long startTime) {
-        this(snapshotId, indices, SnapshotState.IN_PROGRESS, null, Version.CURRENT, startTime, 0L, 0, 0, Collections.emptyList());
+        this(snapshotId, indices, SnapshotState.IN_PROGRESS, null, Version.CURRENT, startTime, 0L, 0, 0, Collections.emptyList(), false);
     }
 
     public SnapshotInfo(SnapshotId snapshotId, List<String> indices, long startTime, String reason, long endTime,
-                        int totalShards, List<SnapshotShardFailure> shardFailures) {
+                        int totalShards, List<SnapshotShardFailure> shardFailures, boolean hasGlobalState) {
         this(snapshotId, indices, snapshotState(reason, shardFailures), reason, Version.CURRENT,
-             startTime, endTime, totalShards, totalShards - shardFailures.size(), shardFailures);
+             startTime, endTime, totalShards, totalShards - shardFailures.size(), shardFailures, hasGlobalState);
     }
 
-    private SnapshotInfo(SnapshotId snapshotId, List<String> indices, SnapshotState state, String reason, Version version,
-                         long startTime, long endTime, int totalShards, int successfulShards, List<SnapshotShardFailure> shardFailures) {
+    private SnapshotInfo(SnapshotId snapshotId, List<String> indices, SnapshotState state, String reason,
+                         Version version, long startTime, long endTime, int totalShards, int successfulShards,
+                         List<SnapshotShardFailure> shardFailures, boolean hasGlobalState) {
         this.snapshotId = Objects.requireNonNull(snapshotId);
         this.indices = Objects.requireNonNull(indices);
         this.state = Objects.requireNonNull(state);
@@ -113,6 +117,7 @@ public final class SnapshotInfo implements Comparable<SnapshotInfo>, ToXContent,
         this.totalShards = totalShards;
         this.successfulShards = successfulShards;
         this.shardFailures = Objects.requireNonNull(shardFailures);
+        this.hasGlobalState = hasGlobalState;
     }
 
     /**
@@ -142,6 +147,7 @@ public final class SnapshotInfo implements Comparable<SnapshotInfo>, ToXContent,
         } else {
             shardFailures = Collections.emptyList();
         }
+        hasGlobalState = in.readBoolean();
         if (in.getVersion().before(VERSION_INCOMPATIBLE_INTRODUCED)) {
             version = Version.readVersion(in);
         } else {
@@ -156,7 +162,7 @@ public final class SnapshotInfo implements Comparable<SnapshotInfo>, ToXContent,
     public static SnapshotInfo incompatible(SnapshotId snapshotId) {
         return new SnapshotInfo(snapshotId, Collections.emptyList(), SnapshotState.INCOMPATIBLE,
                                 "the snapshot is incompatible with the current version of Elasticsearch and its exact version is unknown",
-                                null, 0L, 0L, 0, 0, Collections.emptyList());
+                                null, 0L, 0L, 0, 0, Collections.emptyList(), false);
     }
 
     /**
@@ -252,6 +258,15 @@ public final class SnapshotInfo implements Comparable<SnapshotInfo>, ToXContent,
     }
 
     /**
+     * Returns whether snapshot contains global state information
+     *
+     * @return whether snapshot has global state
+     */
+    public boolean hasGlobalState() {
+        return hasGlobalState;
+    }
+
+    /**
      * Returns the version of elasticsearch that the snapshot was created with.  Will only
      * return {@code null} if {@link #state()} returns {@link SnapshotState#INCOMPATIBLE}.
      *
@@ -325,6 +340,7 @@ public final class SnapshotInfo implements Comparable<SnapshotInfo>, ToXContent,
         builder.startObject();
         builder.field(SNAPSHOT, snapshotId.getName());
         builder.field(UUID, snapshotId.getUUID());
+        builder.field(HAS_GLOBAL_STATE, hasGlobalState);
         if (version != null) {
             builder.field(VERSION_ID, version.id);
             builder.field(VERSION, version.toString());
@@ -384,6 +400,7 @@ public final class SnapshotInfo implements Comparable<SnapshotInfo>, ToXContent,
         builder.field(END_TIME, endTime);
         builder.field(TOTAL_SHARDS, totalShards);
         builder.field(SUCCESSFUL_SHARDS, successfulShards);
+        builder.field(HAS_GLOBAL_STATE, hasGlobalState);
         builder.startArray(FAILURES);
         for (SnapshotShardFailure shardFailure : shardFailures) {
             builder.startObject();
@@ -411,6 +428,7 @@ public final class SnapshotInfo implements Comparable<SnapshotInfo>, ToXContent,
         long endTime = 0;
         int totalShards = 0;
         int successfulShards = 0;
+        boolean hasGlobalState = false;
         List<SnapshotShardFailure> shardFailures = Collections.emptyList();
         if (parser.currentToken() == null) { // fresh parser? move to the first token
             parser.nextToken();
@@ -443,6 +461,8 @@ public final class SnapshotInfo implements Comparable<SnapshotInfo>, ToXContent,
                                 totalShards = parser.intValue();
                             } else if (SUCCESSFUL_SHARDS.equals(currentFieldName)) {
                                 successfulShards = parser.intValue();
+                            } else if (HAS_GLOBAL_STATE.equals(currentFieldName)) {
+                                hasGlobalState = parser.booleanValue();
                             } else if (VERSION_ID.equals(currentFieldName)) {
                                 version = Version.fromId(parser.intValue());
                             }
@@ -486,7 +506,8 @@ public final class SnapshotInfo implements Comparable<SnapshotInfo>, ToXContent,
                                 endTime,
                                 totalShards,
                                 successfulShards,
-                                shardFailures);
+                                shardFailures,
+                                hasGlobalState);
     }
 
     @Override
@@ -510,6 +531,7 @@ public final class SnapshotInfo implements Comparable<SnapshotInfo>, ToXContent,
         for (SnapshotShardFailure failure : shardFailures) {
             failure.writeTo(out);
         }
+        out.writeBoolean(hasGlobalState);
         if (out.getVersion().before(VERSION_INCOMPATIBLE_INTRODUCED)) {
             Version versionToWrite = version;
             if (versionToWrite == null) {

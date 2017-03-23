@@ -1,0 +1,46 @@
+---
+setup:
+
+  - do:
+      snapshot.create_repository:
+        repository: test_repo_status_1
+        body:
+          type: fs
+          settings:
+            location: "test_repo_status_1_loc"
+
+
+---
+"Check snapshot status hasGlobalState when true":
+
+  - do:
+      snapshot.create:
+        repository: test_repo_status_1
+        snapshot: test_snapshot_1
+        wait_for_completion: true
+        body:
+          include_global_state: true
+
+  - do:
+      snapshot.status:
+        repository: test_repo_status_1
+        snapshot: test_snapshot_1
+
+  - is_true: snapshots.0.has_global_state
+
+---
+"Check snapshot status hasGlobalState when false":
+  - do:
+      snapshot.create:
+        repository: test_repo_status_1
+        snapshot: test_snapshot_2
+        wait_for_completion: true
+        body:
+          include_global_state: false
+
+  - do:
+      snapshot.status:
+        repository: test_repo_status_1
+        snapshot: test_snapshot_2
+
+  - is_false: snapshots.0.has_global_state

@@ -49,6 +49,8 @@ public class SnapshotStatus implements ToXContent, Streamable {
 
     private State state;
 
+    private boolean hasGlobalState;
+
     private List<SnapshotIndexShardStatus> shards;
 
     private Map<String, SnapshotIndexStatus> indicesStatus;
@@ -57,9 +59,10 @@ public class SnapshotStatus implements ToXContent, Streamable {
 
     private SnapshotStats stats;
 
-    SnapshotStatus(final Snapshot snapshot, final State state, final List<SnapshotIndexShardStatus> shards) {
+    SnapshotStatus(final Snapshot snapshot, final State state, final List<SnapshotIndexShardStatus> shards, boolean hasGlobalState) {
         this.snapshot = Objects.requireNonNull(snapshot);
         this.state = Objects.requireNonNull(state);
+        this.hasGlobalState = hasGlobalState;
         this.shards = Objects.requireNonNull(shards);
         shardsStats = new SnapshotShardsStats(shards);
         updateShardStats();
@@ -80,6 +83,13 @@ public class SnapshotStatus implements ToXContent, Streamable {
      */
     public State getState() {
         return state;
+    }
+
+    /**
+     * Returns whether snapshot has global state information
+     */
+    public boolean getHasGlobalState() {
+        return hasGlobalState;
     }
 
     /**
@@ -133,6 +143,7 @@ public class SnapshotStatus implements ToXContent, Streamable {
         }
         shards = Collections.unmodifiableList(builder);
         updateShardStats();
+        hasGlobalState = in.readBoolean();
     }
 
     @Override
@@ -143,6 +154,7 @@ public class SnapshotStatus implements ToXContent, Streamable {
         for (SnapshotIndexShardStatus shard : shards) {
             shard.writeTo(out);
         }
+        out.writeBoolean(hasGlobalState);
     }
 
     /**
@@ -181,6 +193,7 @@ public class SnapshotStatus implements ToXContent, Streamable {
     private static final String REPOSITORY = "repository";
     private static final String UUID = "uuid";
     private static final String STATE = "state";
+    private static final String HAS_GLOBAL_STATE = "has_global_state";
     private static final String INDICES = "indices";
 
     @Override
@@ -190,6 +203,7 @@ public class SnapshotStatus implements ToXContent, Streamable {
         builder.field(REPOSITORY, snapshot.getRepository());
         builder.field(UUID, snapshot.getSnapshotId().getUUID());
         builder.field(STATE, state.name());
+        builder.field(HAS_GLOBAL_STATE, hasGlobalState);
         shardsStats.toXContent(builder, params);
         stats.toXContent(builder, params);
         builder.startObject(INDICES);
