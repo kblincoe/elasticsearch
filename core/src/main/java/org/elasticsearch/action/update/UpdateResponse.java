@@ -22,6 +22,7 @@ package org.elasticsearch.action.update;
 import org.elasticsearch.action.DocWriteResponse;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
+import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.index.get.GetResult;
@@ -46,12 +47,12 @@ public class UpdateResponse extends DocWriteResponse {
      * Constructor to be used when a update didn't translate in a write.
      * For example: update script with operation set to none
      */
-    public UpdateResponse(ShardId shardId, String type, String id, long version, Result result, long took) {
+    public UpdateResponse(ShardId shardId, String type, String id, long version, Result result, TimeValue took) {
         this(new ShardInfo(0, 0), shardId, type, id, SequenceNumbersService.UNASSIGNED_SEQ_NO, version, result, took);
     }
 
     public UpdateResponse(ShardInfo shardInfo, ShardId shardId, String type, String id, long seqNo, long version,
-                          Result result, long took) {
+                          Result result, TimeValue took) {
         super(shardId, type, id, seqNo, version, result, took);
         setShardInfo(shardInfo);
     }

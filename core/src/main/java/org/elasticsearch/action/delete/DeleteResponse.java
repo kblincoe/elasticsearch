@@ -20,6 +20,7 @@
 package org.elasticsearch.action.delete;
 
 import org.elasticsearch.action.DocWriteResponse;
+import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.index.shard.ShardId;
@@ -42,7 +43,7 @@ public class DeleteResponse extends DocWriteResponse {
     public DeleteResponse() {
     }
 
-    public DeleteResponse(ShardId shardId, String type, String id, long seqNo, long version, boolean found, long took) {
+    public DeleteResponse(ShardId shardId, String type, String id, long seqNo, long version, boolean found, TimeValue took) {
         super(shardId, type, id, seqNo, version, found ? Result.DELETED : Result.NOT_FOUND, took);
     }
 

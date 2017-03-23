@@ -181,7 +181,7 @@ public class TransportUpdateAction extends TransportInstanceSingleOperationActio
                         ActionListener.<IndexResponse>wrap(response -> {
                             UpdateResponse update = new UpdateResponse(response.getShardInfo(), response.getShardId(),
                                 response.getType(), response.getId(), response.getSeqNo(), response.getVersion(),
-                                response.getResult(), response.getTookInNanos());
+                                response.getResult(), response.getTook());
                             if ((request.fetchSource() != null && request.fetchSource().fetchSource()) ||
                                     (request.fields() != null && request.fields().length > 0)) {
                                 Tuple<XContentType, Map<String, Object>> sourceAndContent =
@@ -204,7 +204,7 @@ public class TransportUpdateAction extends TransportInstanceSingleOperationActio
                         ActionListener.<IndexResponse>wrap(response -> {
                             UpdateResponse update = new UpdateResponse(response.getShardInfo(), response.getShardId(),
                                 response.getType(), response.getId(), response.getSeqNo(), response.getVersion(),
-                                response.getResult(), response.getTookInNanos());
+                                response.getResult(), response.getTook());
                             update.setGetResult(updateHelper.extractGetResult(request, request.concreteIndex(), response.getVersion(), result.updatedSourceAsMap(), result.updateSourceContentType(), indexSourceBytes));
                             update.setForcedRefresh(response.forcedRefresh());
                             listener.onResponse(update);
@@ -217,7 +217,7 @@ public class TransportUpdateAction extends TransportInstanceSingleOperationActio
                         ActionListener.<DeleteResponse>wrap(response -> {
                             UpdateResponse update = new UpdateResponse(response.getShardInfo(), response.getShardId(),
                                 response.getType(), response.getId(), response.getSeqNo(), response.getVersion(),
-                                response.getResult(), response.getTookInNanos());
+                                response.getResult(), response.getTook());
                             update.setGetResult(updateHelper.extractGetResult(request, request.concreteIndex(), response.getVersion(), result.updatedSourceAsMap(), result.updateSourceContentType(), null));
                             update.setForcedRefresh(response.forcedRefresh());
                             listener.onResponse(update);

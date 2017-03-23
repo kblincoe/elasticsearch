@@ -28,6 +28,7 @@ import org.elasticsearch.common.Nullable;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.io.stream.Writeable;
+import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.StatusToXContentObject;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentParser;
@@ -61,7 +62,6 @@ public abstract class DocWriteResponse extends ReplicationResponse implements Wr
     private static final String FORCED_REFRESH = "forced_refresh";
     private static final String RESULT = "result";
     private static final String TOOK = "took";
-    private static final Long UNASSIGNED_TOOK_TIME = -1L;
 
     /**
      * An enum that represents the the results of CRUD operations, primarily used to communicate the type of
@@ -121,16 +121,16 @@ public abstract class DocWriteResponse extends ReplicationResponse implements Wr
     private long seqNo;
     private boolean forcedRefresh;
     protected Result result;
-    protected long tookInNanos;
+    protected TimeValue took;
 
-    public DocWriteResponse(ShardId shardId, String type, String id, long seqNo, long version, Result result, long tookInNanos) {
+    public DocWriteResponse(ShardId shardId, String type, String id, long seqNo, long version, Result result, TimeValue took) {
         this.shardId = shardId;
         this.type = type;
         this.id = id;
         this.seqNo = seqNo;
         this.version = version;
         this.result = result;
-        this.tookInNanos = tookInNanos;
+        this.took = took;
     }
 
     // needed for deserialization
@@ -145,19 +145,12 @@ public abstract class DocWriteResponse extends ReplicationResponse implements Wr
     }
 
     /**
-     * The time it took to change the document (in nanoseconds).
+     * The time it took to change the document.
      */
-    public Long getTookInNanos() {
-        return tookInNanos;
+    public TimeValue getTook() {
+        return took;
     }
 
-    /**
-     * The time it took to change the document (in milliseconds).
-     * This method will be used as the default output to the terminal.
-     */
-    public long getTookInMillis() {
-        return TimeUnit.MILLISECONDS.convert(getTookInNanos(), TimeUnit.NANOSECONDS);
-    }
     /**
      * The index the document was changed in.
      */
@@ -276,9 +269,9 @@ public abstract class DocWriteResponse extends ReplicationResponse implements Wr
         forcedRefresh = in.readBoolean();
         result = Result.readFrom(in);
         if (in.getVersion().onOrAfter(Version.V_6_0_0_alpha1_UNRELEASED)) {
-            tookInNanos = in.readZLong();
+            took = new TimeValue(in);
         } else {
-            tookInNanos = UNASSIGNED_TOOK_TIME;
+            took = new TimeValue(-1L);
         }
     }
 
@@ -295,7 +288,7 @@ public abstract class DocWriteResponse extends ReplicationResponse implements Wr
         out.writeBoolean(forcedRefresh);
         result.writeTo(out);
         if (out.getVersion().onOrAfter(Version.V_6_0_0_alpha1_UNRELEASED)) {
-            out.writeZLong(tookInNanos);
+            took.writeTo(out);
         }
     }
 
@@ -314,8 +307,8 @@ public abstract class DocWriteResponse extends ReplicationResponse implements Wr
                 .field(_ID, id)
                 .field(_VERSION, version)
                 .field(RESULT, getResult().getLowercase());
-        if (getTookInNanos() >= 0) {
-            builder.field(TOOK, getTookInMillis()); // Building 'took' in milliseconds for readability
+        if (getTook().nanos() >= 0) {
+            builder.field(TOOK, getTook().millis());    // Building 'took' in milliseconds for readability
         }
         if (forcedRefresh) {
             builder.field(FORCED_REFRESH, true);
@@ -360,7 +353,8 @@ public abstract class DocWriteResponse extends ReplicationResponse implements Wr
                     }
                 }
             } else if (TOOK.equals(currentFieldName)) {
-                context.setTook(parser.longValue());
+                // parser.longValue() returns took time in milliseconds
+                context.setTook(new TimeValue(parser.longValue()));
             } else if (FORCED_REFRESH.equals(currentFieldName)) {
                 context.setForcedRefresh(parser.booleanValue());
             } else if (_SEQ_NO.equals(currentFieldName)) {
@@ -391,7 +385,7 @@ public abstract class DocWriteResponse extends ReplicationResponse implements Wr
         protected String id = null;
         protected Long version = null;
         protected Result result = null;
-        protected Long took = null;
+        protected TimeValue took = null;
         protected boolean forcedRefresh;
         protected ShardInfo shardInfo = null;
         protected Long seqNo = SequenceNumbersService.UNASSIGNED_SEQ_NO;
@@ -428,7 +422,7 @@ public abstract class DocWriteResponse extends ReplicationResponse implements Wr
             this.result = result;
         }
 
-        public void setTook(Long took) {
+        public void setTook(TimeValue took) {
             this.took = took;
         }
 

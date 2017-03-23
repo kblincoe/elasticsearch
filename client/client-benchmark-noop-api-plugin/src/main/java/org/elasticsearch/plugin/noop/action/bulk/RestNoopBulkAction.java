@@ -29,6 +29,7 @@ import org.elasticsearch.client.Requests;
 import org.elasticsearch.client.node.NodeClient;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.index.shard.ShardId;
 import org.elasticsearch.rest.BaseRestHandler;
@@ -85,7 +86,8 @@ public class RestNoopBulkAction extends BaseRestHandler {
 
     private static class BulkRestBuilderListener extends RestBuilderListener<BulkRequest> {
         private final BulkItemResponse ITEM_RESPONSE = new BulkItemResponse(1, DocWriteRequest.OpType.UPDATE,
-            new UpdateResponse(new ShardId("mock", "", 1), "mock_type", "1", 1L, DocWriteResponse.Result.CREATED, 0L));
+            new UpdateResponse(new ShardId("mock", "", 1), "mock_type", "1", 1L,
+                DocWriteResponse.Result.CREATED, new TimeValue(1L)));
 
         private final RestRequest request;
 

@@ -26,6 +26,7 @@ import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.bytes.BytesArray;
 import org.elasticsearch.common.bytes.BytesReference;
 import org.elasticsearch.common.collect.Tuple;
+import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.get.GetField;
@@ -44,23 +45,26 @@ import static org.elasticsearch.action.DocWriteResponse.Result.DELETED;
 import static org.elasticsearch.action.DocWriteResponse.Result.NOT_FOUND;
 import static org.elasticsearch.action.DocWriteResponse.Result.UPDATED;
 import static org.elasticsearch.cluster.metadata.IndexMetaData.INDEX_UUID_NA_VALUE;
+import static org.elasticsearch.common.unit.TimeValue.parseTimeValue;
 import static org.elasticsearch.common.xcontent.XContentHelper.toXContent;
 
 public class UpdateResponseTests extends ESTestCase {
 
     public void testToXContent() throws IOException {
         {
-            UpdateResponse updateResponse = new UpdateResponse(new ShardId("index", "index_uuid", 0), "type", "id", 0, NOT_FOUND, 0L);
+            UpdateResponse updateResponse = new UpdateResponse(new ShardId("index", "index_uuid", 0), "type", "id", 0, NOT_FOUND,
+                TimeValue.timeValueMillis(56789));
             String output = Strings.toString(updateResponse);
             assertEquals("{\"_index\":\"index\",\"_type\":\"type\",\"_id\":\"id\",\"_version\":0,\"result\":\"not_found\"," +
-                    "\"took\":0,\"_shards\":{\"total\":0,\"successful\":0,\"failed\":0}}", output);
+                    "\"took\":56789,\"_shards\":{\"total\":0,\"successful\":0,\"failed\":0}}", output);
         }
         {
             UpdateResponse updateResponse = new UpdateResponse(new ReplicationResponse.ShardInfo(10, 6),
-                    new ShardId("index", "index_uuid", 1), "type", "id", 3, 1, DELETED, 0L);
+                    new ShardId("index", "index_uuid", 1), "type", "id", 3, 1, DELETED,
+                TimeValue.timeValueMillis(98765));
             String output = Strings.toString(updateResponse);
             assertEquals("{\"_index\":\"index\",\"_type\":\"type\",\"_id\":\"id\",\"_version\":1,\"result\":\"deleted\"," +
-                    "\"took\":0,\"_shards\":{\"total\":10,\"successful\":6,\"failed\":0},\"_seq_no\":3}", output);
+                    "\"took\":98765,\"_shards\":{\"total\":10,\"successful\":6,\"failed\":0},\"_seq_no\":3}", output);
         }
         {
             BytesReference source = new BytesArray("{\"title\":\"Book title\",\"isbn\":\"ABC-123\"}");
@@ -69,12 +73,13 @@ public class UpdateResponseTests extends ESTestCase {
             fields.put("isbn", new GetField("isbn", Collections.singletonList("ABC-123")));
 
             UpdateResponse updateResponse = new UpdateResponse(new ReplicationResponse.ShardInfo(3, 2),
-                    new ShardId("books", "books_uuid", 2), "book", "1", 7, 2, UPDATED, 0L);
+                    new ShardId("books", "books_uuid", 2), "book", "1", 7, 2, UPDATED,
+                TimeValue.timeValueMillis(99999));
             updateResponse.setGetResult(new GetResult("books", "book", "1", 2, true, source, fields));
 
             String output = Strings.toString(updateResponse);
             assertEquals("{\"_index\":\"books\",\"_type\":\"book\",\"_id\":\"1\",\"_version\":2,\"result\":\"updated\"," +
-                    "\"took\":0,\"_shards\":{\"total\":3,\"successful\":2,\"failed\":0},\"_seq_no\":7,\"get\":{\"found\":true," +
+                    "\"took\":99999,\"_shards\":{\"total\":3,\"successful\":2,\"failed\":0},\"_seq_no\":7,\"get\":{\"found\":true," +
                     "\"_source\":{\"title\":\"Book title\",\"isbn\":\"ABC-123\"},\"fields\":{\"isbn\":[\"ABC-123\"],\"title\":[\"Book " +
                     "title\"]}}}", output);
         }
@@ -132,6 +137,7 @@ public class UpdateResponseTests extends ESTestCase {
         DocWriteResponse.Result result = actualGetResult.isExists() ? DocWriteResponse.Result.UPDATED : DocWriteResponse.Result.NOT_FOUND;
         String indexUUid = randomAsciiOfLength(5);
         int shardId = randomIntBetween(0, 5);
+        TimeValue took = parseTimeValue(randomPositiveTimeValue(), "test");
 
         // We also want small number values (randomNonNegativeLong() tend to generate high numbers)
         // in order to catch some conversion error that happen between int/long after parsing.
@@ -144,11 +150,11 @@ public class UpdateResponseTests extends ESTestCase {
         if (seqNo != null) {
             Tuple<ReplicationResponse.ShardInfo, ReplicationResponse.ShardInfo> shardInfos = RandomObjects.randomShardInfo(random());
 
-            actual = new UpdateResponse(shardInfos.v1(), actualShardId, type, id, seqNo, version, result, 0L);
-            expected = new UpdateResponse(shardInfos.v2(), expectedShardId, type, id, seqNo, version, result, 0L);
+            actual = new UpdateResponse(shardInfos.v1(), actualShardId, type, id, seqNo, version, result, took);
+            expected = new UpdateResponse(shardInfos.v2(), expectedShardId, type, id, seqNo, version, result, took);
         } else {
-            actual = new UpdateResponse(actualShardId, type, id, version, result, 0L);
-            expected = new UpdateResponse(expectedShardId, type, id, version, result, 0L);
+            actual = new UpdateResponse(actualShardId, type, id, version, result, took);
+            expected = new UpdateResponse(expectedShardId, type, id, version, result, took);
         }
 
         if (actualGetResult.isExists()) {
