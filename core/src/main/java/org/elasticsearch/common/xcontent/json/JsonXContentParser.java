@@ -33,8 +33,10 @@ import java.io.IOException;
 import java.nio.CharBuffer;
 
 /**
- *
+ * @deprecated JSON will be deprecated as of ES 2.4 and will be removed in ES 5.0 because YAML will be used instead. Replaced by
+ *      {@link org.elasticsearch.common.xcontent.yaml.YamlXContentParser}
  */
+@Deprecated
 public class JsonXContentParser extends AbstractXContentParser {
 
     final JsonParser parser;

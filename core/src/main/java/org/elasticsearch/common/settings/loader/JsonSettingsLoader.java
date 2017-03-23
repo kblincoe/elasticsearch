@@ -24,7 +24,11 @@ import org.elasticsearch.common.xcontent.XContentType;
 /**
  * Settings loader that loads (parses) the settings in a json format by flattening them
  * into a map.
+ *
+ * @deprecated JSON will be deprecated as of ES 2.4 and will be removed in ES 5.0 because YAML will be used instead. Replaced by
+ *      {@link org.elasticsearch.common.settings.loader.YamlSettingsLoader}
  */
+@Deprecated
 public class JsonSettingsLoader extends XContentSettingsLoader {
 
     @Override

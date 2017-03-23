@@ -31,7 +31,11 @@ import java.io.*;
 
 /**
  * A JSON based content implementation using Jackson.
+ *
+ * @deprecated JSON will be deprecated as of ES 2.4 and will be removed in ES 5.0 because YAML will be used instead. Replaced by
+ *      {@link org.elasticsearch.common.xcontent.yaml.YamlXContent}
  */
+@Deprecated
 public class JsonXContent implements XContent {
 
     public static XContentBuilder contentBuilder() throws IOException {
