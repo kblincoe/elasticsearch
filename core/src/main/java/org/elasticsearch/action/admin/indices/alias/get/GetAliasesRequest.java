@@ -35,17 +35,17 @@ public class GetAliasesRequest extends MasterNodeReadRequest<GetAliasesRequest> 
 
     private IndicesOptions indicesOptions = IndicesOptions.strictExpand();
     
-    public GetAliasesRequest(String[] aliases){
-        this.aliases=aliases;
+    public GetAliasesRequest(String[] aliases) {
+        this.aliases = aliases;
     }
     
     public GetAliasesRequest(String alias) {
-        // String alias can contains multiple aliases separated by commas. 
-        // Alias names cannot contains ',', hence don't need to worry about splitting the alias name. 
-        if(alias.contains(",")){
+        // String alias can contain multiple aliases separated by commas. 
+        // Alias names cannot contain ',', thus, don't need to worry about splitting the alias name. 
+        if (alias.contains(",")) {
             this.aliases = alias.split(",");
-        }else{ 
-            this.aliases= new String[]{alias};
+        } else { 
+            this.aliases = new String[]{alias};
         }
     }
 
