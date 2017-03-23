@@ -79,7 +79,7 @@ public class GetIndexRequest extends ClusterInfoRequest<GetIndexRequest> {
             }
             // check the request contains empty body
             String noSpacesName = name.replaceAll("\\s+","");
-        	if(noSpacesName.contains("{}") || noSpacesName.contains(""))
+        	if(noSpacesName.contains("{}") || noSpacesName.contains("''"))
         	{
         		throw new IllegalArgumentException("The empty body is not allowed");
         	}
