@@ -6,15 +6,16 @@ Issue number: group name (no links to elasticsearch, just the number - sort by i
 * 5341: 100
 * 7601: JAH
 * 8217: Rocky Road
+* 8362: 1337
 * 9538: Krispy Belgian Cookies
 * 10096: jk
 * 10441: The Best Engineers, The Best
+* 10795: 1337
 * 11295: global elite
 * 11310: java ych
 * 12315: Oink
 * 12620: global elite
 * 13214: JavaGeeks
-* 13260: jk
 * 14114: FDJ
 * 15115: Chicken Nugget trio
 * 15295: The Best Engineers, The Best
@@ -54,8 +55,10 @@ Issue number: group name (no links to elasticsearch, just the number - sort by i
 * 22870: Group SmallBit
 * 22881: JavaGeeks
 * 23044: marathon
+* 23131: Random 2
 * 23193: 100
 * 23208: java ych
+* 23231: Random 2
 * 23268: Your Choice
 * 23430: Honey Boo Boo Fan Club
 * 23435: The Best Engineers, The Best
@@ -64,5 +67,6 @@ Issue number: group name (no links to elasticsearch, just the number - sort by i
 * 23609: marathon
 * 23661: Honey Boo Boo Fan Club`
 * 23646: Chicken Nugget Trio
+* 23650: Random 1
 * 23664: Random 1
 * 23673: Random 1
