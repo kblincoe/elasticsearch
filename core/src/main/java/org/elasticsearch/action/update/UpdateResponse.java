@@ -46,12 +46,13 @@ public class UpdateResponse extends DocWriteResponse {
      * Constructor to be used when a update didn't translate in a write.
      * For example: update script with operation set to none
      */
-    public UpdateResponse(ShardId shardId, String type, String id, long version, Result result) {
-        this(new ShardInfo(0, 0), shardId, type, id, SequenceNumbersService.UNASSIGNED_SEQ_NO, version, result);
+    public UpdateResponse(ShardId shardId, String type, String id, long tookInMillis, long version, Result result) {
+        this(new ShardInfo(0, 0), shardId, type, id, tookInMillis, SequenceNumbersService.UNASSIGNED_SEQ_NO, version, result);
     }
 
-    public UpdateResponse(ShardInfo shardInfo, ShardId shardId, String type, String id, long seqNo, long version, Result result) {
-        super(shardId, type, id, seqNo, version, result);
+    public UpdateResponse(ShardInfo shardInfo, ShardId shardId, String type, String id, long tookInMillis, long seqNo, long version,
+                          Result result) {
+        super(shardId, type, id, tookInMillis, seqNo, version, result);
         setShardInfo(shardInfo);
     }
 
@@ -154,9 +155,9 @@ public class UpdateResponse extends DocWriteResponse {
         public UpdateResponse build() {
             UpdateResponse update;
             if (shardInfo != null && seqNo != null) {
-                update = new UpdateResponse(shardInfo, shardId, type, id, seqNo, version, result);
+                update = new UpdateResponse(shardInfo, shardId, type, id, tookInMillis, seqNo, version, result);
             } else {
-                update = new UpdateResponse(shardId, type, id, version, result);
+                update = new UpdateResponse(shardId, type, id, tookInMillis, version, result);
             }
             if (getResult != null) {
                 update.setGetResult(new GetResult(update.getIndex(), update.getType(), update.getId(), update.getVersion(),

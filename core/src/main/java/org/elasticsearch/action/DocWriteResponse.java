@@ -55,6 +55,7 @@ public abstract class DocWriteResponse extends ReplicationResponse implements Wr
     private static final String _INDEX = "_index";
     private static final String _TYPE = "_type";
     private static final String _ID = "_id";
+    private static final String _TOOK = "_took";
     private static final String _VERSION = "_version";
     private static final String _SEQ_NO = "_seq_no";
     private static final String RESULT = "result";
@@ -114,15 +115,21 @@ public abstract class DocWriteResponse extends ReplicationResponse implements Wr
     private ShardId shardId;
     private String id;
     private String type;
+    private long tookInMillis;
     private long version;
     private long seqNo;
     private boolean forcedRefresh;
     protected Result result;
 
     public DocWriteResponse(ShardId shardId, String type, String id, long seqNo, long version, Result result) {
+        this(shardId, type, id, -1L, seqNo, version, result);
+    }
+
+    public DocWriteResponse(ShardId shardId, String type, String id, long tookInMillis, long seqNo, long version, Result result) {
         this.shardId = shardId;
         this.type = type;
         this.id = id;
+        this.tookInMillis = tookInMillis;
         this.seqNo = seqNo;
         this.version = version;
         this.result = result;
@@ -130,6 +137,13 @@ public abstract class DocWriteResponse extends ReplicationResponse implements Wr
 
     // needed for deserialization
     protected DocWriteResponse() {
+    }
+
+    /**
+     * How long the index/delete/update execution took in milliseconds.
+     */
+    public long getTookInMillis() {
+        return tookInMillis;
     }
 
     /**
@@ -248,6 +262,11 @@ public abstract class DocWriteResponse extends ReplicationResponse implements Wr
         shardId = ShardId.readShardId(in);
         type = in.readString();
         id = in.readString();
+        if (in.getVersion().onOrAfter(Version.V_6_0_0_alpha1_UNRELEASED)) {
+            tookInMillis = in.readVLong();
+        } else {
+            tookInMillis = 0L;
+        }
         version = in.readZLong();
         if (in.getVersion().onOrAfter(Version.V_6_0_0_alpha1_UNRELEASED)) {
             seqNo = in.readZLong();
@@ -264,6 +283,9 @@ public abstract class DocWriteResponse extends ReplicationResponse implements Wr
         shardId.writeTo(out);
         out.writeString(type);
         out.writeString(id);
+        if (out.getVersion().onOrAfter(Version.V_6_0_0_alpha1_UNRELEASED)){
+            out.writeVLong(tookInMillis);
+        }
         out.writeZLong(version);
         if (out.getVersion().onOrAfter(Version.V_6_0_0_alpha1_UNRELEASED)) {
             out.writeZLong(seqNo);
@@ -285,6 +307,7 @@ public abstract class DocWriteResponse extends ReplicationResponse implements Wr
         builder.field(_INDEX, shardId.getIndexName())
                 .field(_TYPE, type)
                 .field(_ID, id)
+                .field(_TOOK, tookInMillis)
                 .field(_VERSION, version)
                 .field(RESULT, getResult().getLowercase());
         if (forcedRefresh) {
@@ -319,6 +342,8 @@ public abstract class DocWriteResponse extends ReplicationResponse implements Wr
                 context.setType(parser.text());
             } else if (_ID.equals(currentFieldName)) {
                 context.setId(parser.text());
+            } else if (_TOOK.equals(currentFieldName)) {
+                context.setTookInMillis(parser.longValue());
             } else if (_VERSION.equals(currentFieldName)) {
                 context.setVersion(parser.longValue());
             } else if (RESULT.equals(currentFieldName)) {
@@ -357,6 +382,7 @@ public abstract class DocWriteResponse extends ReplicationResponse implements Wr
         protected ShardId shardId = null;
         protected String type = null;
         protected String id = null;
+        protected Long tookInMillis = null;
         protected Long version = null;
         protected Result result = null;
         protected boolean forcedRefresh;
@@ -385,6 +411,12 @@ public abstract class DocWriteResponse extends ReplicationResponse implements Wr
 
         public void setId(String id) {
             this.id = id;
+        }
+
+        public Long getTookInMillis() { return tookInMillis; }
+
+        public void setTookInMillis(Long tookInMillis) {
+            this.tookInMillis = tookInMillis;
         }
 
         public void setVersion(Long version) {

@@ -53,6 +53,7 @@ public class BulkItemResponse implements Streamable, StatusToXContentObject {
     private static final String _INDEX = "_index";
     private static final String _TYPE = "_type";
     private static final String _ID = "_id";
+    private static final String _TOOK = "_took";
     private static final String STATUS = "status";
     private static final String ERROR = "error";
 
@@ -72,6 +73,7 @@ public class BulkItemResponse implements Streamable, StatusToXContentObject {
             builder.field(_INDEX, failure.getIndex());
             builder.field(_TYPE, failure.getType());
             builder.field(_ID, failure.getId());
+            builder.field(_TOOK, failure.getTookTime());
             builder.field(STATUS, failure.getStatus().getStatus());
             builder.startObject(ERROR);
             ElasticsearchException.generateThrowableXContent(builder, params, failure.getCause());
@@ -148,7 +150,8 @@ public class BulkItemResponse implements Streamable, StatusToXContentObject {
 
         BulkItemResponse bulkItemResponse;
         if (exception != null) {
-            Failure failure = new Failure(builder.getShardId().getIndexName(), builder.getType(), builder.getId(), exception, status);
+            Failure failure = new Failure(builder.getShardId().getIndexName(), builder.getType(), builder.getId(),
+                builder.getTookInMillis(), exception, status);
             bulkItemResponse = new BulkItemResponse(id, opType, failure);
         } else {
             bulkItemResponse = new BulkItemResponse(id, opType, builder.build());
@@ -163,25 +166,36 @@ public class BulkItemResponse implements Streamable, StatusToXContentObject {
         static final String INDEX_FIELD = "index";
         static final String TYPE_FIELD = "type";
         static final String ID_FIELD = "id";
+        static final String TOOK_FIELD = "took";
         static final String CAUSE_FIELD = "cause";
         static final String STATUS_FIELD = "status";
 
         private final String index;
         private final String type;
         private final String id;
+        private final Long tookInMillis;
         private final Exception cause;
         private final RestStatus status;
 
-        Failure(String index, String type, String id, Exception cause, RestStatus status) {
+        Failure(String index, String type, String id, Long tookInMillis, Exception cause, RestStatus status) {
             this.index = index;
             this.type = type;
             this.id = id;
+            this.tookInMillis = tookInMillis;
             this.cause = cause;
             this.status = status;
         }
 
+        Failure(String index, String type, String id, Exception cause, RestStatus status) {
+            this(index, type, id, 0L, cause, status);
+        }
+
+        public Failure(String index, String type, String id, Long tookInMillis, Exception cause) {
+            this(index, type, id, tookInMillis, cause, ExceptionsHelper.status(cause));
+    }
+
         public Failure(String index, String type, String id, Exception cause) {
-            this(index, type, id, cause, ExceptionsHelper.status(cause));
+            this(index, type, id, 0L, cause, ExceptionsHelper.status(cause));
         }
 
         /**
@@ -191,6 +205,11 @@ public class BulkItemResponse implements Streamable, StatusToXContentObject {
             index = in.readString();
             type = in.readString();
             id = in.readOptionalString();
+            if (in.getVersion().onOrAfter(Version.V_6_0_0_alpha1_UNRELEASED)) {
+                tookInMillis = in.readVLong();
+            } else {
+                tookInMillis = 0L;
+            }
             cause = in.readException();
             status = ExceptionsHelper.status(cause);
         }
@@ -200,6 +219,9 @@ public class BulkItemResponse implements Streamable, StatusToXContentObject {
             out.writeString(getIndex());
             out.writeString(getType());
             out.writeOptionalString(getId());
+            if (out.getVersion().onOrAfter(Version.V_6_0_0_alpha1_UNRELEASED)){
+                out.writeVLong(tookInMillis);
+            }
             out.writeException(getCause());
         }
 
@@ -223,6 +245,13 @@ public class BulkItemResponse implements Streamable, StatusToXContentObject {
          */
         public String getId() {
             return id;
+        }
+
+        /**
+         * The took time of the action.
+         */
+        public Long getTookTime() {
+            return tookInMillis;
         }
 
         /**
@@ -253,6 +282,7 @@ public class BulkItemResponse implements Streamable, StatusToXContentObject {
             if (id != null) {
                 builder.field(ID_FIELD, id);
             }
+            builder.field(TOOK_FIELD, tookInMillis);
             builder.startObject(CAUSE_FIELD);
             ElasticsearchException.generateThrowableXContent(builder, params, cause);
             builder.endObject();

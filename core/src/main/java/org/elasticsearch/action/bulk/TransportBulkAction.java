@@ -199,7 +199,7 @@ public class TransportBulkAction extends HandledTransportAction<BulkRequest, Bul
 
     private boolean setResponseFailureIfIndexMatches(AtomicArray<BulkItemResponse> responses, int idx, DocWriteRequest request, String index, Exception e) {
         if (index.equals(request.index())) {
-            responses.set(idx, new BulkItemResponse(idx, request.opType(), new BulkItemResponse.Failure(request.index(), request.type(), request.id(), e)));
+            responses.set(idx, new BulkItemResponse(idx, request.opType(), new BulkItemResponse.Failure(request.index(), request.type(), request.id(), -1L,  e)));
             return true;
         }
         return false;
@@ -280,7 +280,7 @@ public class TransportBulkAction extends HandledTransportAction<BulkRequest, Bul
                         default: throw new AssertionError("request type not supported: [" + docWriteRequest.opType() + "]");
                     }
                 } catch (ElasticsearchParseException | RoutingMissingException e) {
-                    BulkItemResponse.Failure failure = new BulkItemResponse.Failure(concreteIndex.getName(), docWriteRequest.type(), docWriteRequest.id(), e);
+                    BulkItemResponse.Failure failure = new BulkItemResponse.Failure(concreteIndex.getName(), docWriteRequest.type(), docWriteRequest.id(), -1L, e);
                     BulkItemResponse bulkItemResponse = new BulkItemResponse(i, docWriteRequest.opType(), failure);
                     responses.set(i, bulkItemResponse);
                     // make sure the request gets never processed again
@@ -420,7 +420,7 @@ public class TransportBulkAction extends HandledTransportAction<BulkRequest, Bul
             }
         }
         if (unavailableException != null) {
-            BulkItemResponse.Failure failure = new BulkItemResponse.Failure(request.index(), request.type(), request.id(),
+            BulkItemResponse.Failure failure = new BulkItemResponse.Failure(request.index(), request.type(), request.id(), -1L,
                     unavailableException);
             BulkItemResponse bulkItemResponse = new BulkItemResponse(idx, request.opType(), failure);
             responses.set(idx, bulkItemResponse);
@@ -552,7 +552,7 @@ public class TransportBulkAction extends HandledTransportAction<BulkRequest, Bul
             // 2) Add a bulk item failure for this request
             // 3) Continue with the next request in the bulk.
             failedSlots.set(currentSlot);
-            BulkItemResponse.Failure failure = new BulkItemResponse.Failure(indexRequest.index(), indexRequest.type(), indexRequest.id(), e);
+            BulkItemResponse.Failure failure = new BulkItemResponse.Failure(indexRequest.index(), indexRequest.type(), indexRequest.id(), -1L, e);
             itemResponses.add(new BulkItemResponse(currentSlot, indexRequest.opType(), failure));
         }
 
