@@ -104,7 +104,7 @@ public class RandomSearchRequestGenerator {
             do {
                 randomTimeValue = randomPositiveTimeValue();
                 randomKeepAlive = TimeValue.parseTimeValue(randomTimeValue, null, "OTHER:Randomizing Scroll Timeout Value");
-            } while (randomKeepAlive.seconds() > 300);
+            } while (randomKeepAlive.seconds() > Scroll.TIMEOUT_SECONDS);
 
             searchRequest.scroll(randomTimeValue);
         }

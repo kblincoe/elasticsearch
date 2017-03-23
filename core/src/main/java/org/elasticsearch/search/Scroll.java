@@ -36,13 +36,12 @@ import java.util.Objects;
 public final class Scroll implements Writeable {
 
     private final TimeValue keepAlive;
+    public static final int TIMEOUT_SECONDS = 300;
+    public static final TimeValue TIMEOUT_MAX = TimeValue.timeValueSeconds(TIMEOUT_SECONDS);
 
     public Scroll(StreamInput in) throws IOException {
         TimeValue keepAlive = new TimeValue(in);
-        Objects.requireNonNull(keepAlive,"keepAlive must not be null");
-        if(keepAlive.seconds() > 300){
-            throw new IllegalArgumentException("Keep Alive values are restricted to 5 minutes or less.");
-        }
+        checkKeepAlive(keepAlive);
         this.keepAlive = keepAlive;
 }
 
@@ -51,11 +50,18 @@ public final class Scroll implements Writeable {
      */
     public Scroll(TimeValue keepAlive) {
         Objects.requireNonNull(keepAlive,"keepAlive must not be null");
+        checkKeepAlive(keepAlive);
+        this.keepAlive = keepAlive;
+    }
 
-        if(keepAlive.seconds() > 300){
+    /**
+     * Check the validity of the submitted KeepAlive value
+     *
+     */
+    public void checkKeepAlive(TimeValue keepAlive){
+        if(keepAlive.seconds() > TIMEOUT_MAX.seconds()) {
             throw new IllegalArgumentException("Keep Alive values are restricted to 5 minutes or less.");
         }
-        this.keepAlive = keepAlive;
     }
 
     /**
