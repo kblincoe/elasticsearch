@@ -83,7 +83,7 @@ public class RestUpdateAction extends BaseRestHandler {
             IndexRequest upsertRequest = updateRequest.upsertRequest();
             if (upsertRequest != null) {
                 if (request.hasParam("version")) {
-                    throw new IllegalArgumentException("Requests with both upsert and a version are rejected.");
+                    throw new IllegalArgumentException("An upsert request cannot specify version.");
                 }
                 upsertRequest.routing(request.param("routing"));
                 upsertRequest.parent(request.param("parent"));
