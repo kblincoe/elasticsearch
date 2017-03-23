@@ -23,6 +23,7 @@ import org.elasticsearch.action.search.ClearScrollResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.search.SearchType;
+import org.elasticsearch.action.ActionRequestValidationException;
 import org.elasticsearch.cluster.metadata.IndexMetaData;
 import org.elasticsearch.common.Priority;
 import org.elasticsearch.common.settings.Settings;
@@ -524,5 +525,18 @@ public class SearchScrollIT extends ESIntegTestCase {
         Map<String, Object> map = XContentHelper.convertToMap(builder.bytes(), false, builder.contentType()).v2();
         assertThat(map.get("succeeded"), is(succeed));
         assertThat(map.get("num_freed"), equalTo(numFreed));
+    }
+
+    //A simple test to check if the Exception are being shown properly
+    public void testScrollwithFrom() throws Exception {
+        Throwable e = expectThrows( ActionRequestValidationException.class, () ->
+            client().prepareSearch()
+                .setQuery(matchAllQuery())
+                .setFrom(1)
+                .setScroll(TimeValue.timeValueMinutes(2))
+                .execute().actionGet());
+
+        assertEquals("Validation Failed: 1: Error: from function is not working, please remove any from parameters;", e.getMessage());
+
     }
 }

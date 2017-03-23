@@ -23,7 +23,7 @@ import org.elasticsearch.action.ActionRequest;
 import org.elasticsearch.action.ActionRequestValidationException;
 import org.elasticsearch.action.IndicesRequest;
 import org.elasticsearch.action.support.IndicesOptions;
-import static org.elasticsearch.action.ValidateActions.addValidationError;
+import org.elasticsearch.action.ValidateActions;
 import org.elasticsearch.common.Nullable;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.io.stream.StreamInput;
@@ -103,16 +103,16 @@ public final class SearchRequest extends ActionRequest implements IndicesRequest
 
     @Override
     public ActionRequestValidationException validate() {
-        ActionRequestValidationException Exception = null;
+        ActionRequestValidationException exception = null;
         //Added Exception for when 'from' is used in a scroll search since the current version ignores the from anyway.
         if (scroll != null){
-                if (source.from() != 0) {
-                    Exception = addValidationError( "Error: from function is not working, please remove any from parameters:", null);
-                			}
-        		}
-        return Exception;
+            if (source.from() != 0) {
+                exception = ValidateActions.addValidationError( "Error: from function is not working, please remove any from parameters",exception);
+            }
+        }
+        return exception;
     }
-    
+
     /**
      * Sets the indices the search will be executed on.
      */
