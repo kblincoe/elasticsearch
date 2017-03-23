@@ -8,7 +8,7 @@
       "parts": {
         "name": {
           "type" : "string",
-          "description" : "A string representing a list of alias name separated by commas"
+          "description" : "A comma-separated list of alias names to return"
         }
       },
       "params": {
