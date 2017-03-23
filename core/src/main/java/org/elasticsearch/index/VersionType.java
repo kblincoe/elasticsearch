@@ -37,7 +37,8 @@ public enum VersionType implements Writeable {
             if (expectedVersion == Versions.MATCH_DELETED) {
                 return "document already exists (current version [" + currentVersion + "])";
             }
-            return "current version [" + currentVersion + "] is different than the one provided [" + expectedVersion + "]";
+            return "current version [" + currentVersion + "] is different than the one provided [" + expectedVersion + "]: document " +
+                "not found";
         }
 
         @Override
@@ -47,6 +48,10 @@ public enum VersionType implements Writeable {
 
         @Override
         public String explainConflictForReads(long currentVersion, long expectedVersion) {
+            if(currentVersion == -1) {
+                return "current version [" + currentVersion + "] is different than the one provided [" + expectedVersion + "]: document " +
+                    "not found";
+            }
             return "current version [" + currentVersion + "] is different than the one provided [" + expectedVersion + "]";
         }
 
@@ -122,7 +127,11 @@ public enum VersionType implements Writeable {
 
         @Override
         public String explainConflictForReads(long currentVersion, long expectedVersion) {
-            return "current version [" + currentVersion + "] is different than the one provided [" + expectedVersion + "]";
+            if(currentVersion == -1){
+                return "current version [" + currentVersion + "] is different than the one provided [" + expectedVersion + "]: document " +
+                    "not found" ;
+            }
+            return "current version [" + currentVersion + "] is different than the one provided [" + expectedVersion + "]" ;
         }
 
         @Override
@@ -177,6 +186,10 @@ public enum VersionType implements Writeable {
 
         @Override
         public String explainConflictForReads(long currentVersion, long expectedVersion) {
+            if(currentVersion == -1) {
+                return "current version [" + currentVersion + "] is different than the one provided [" + expectedVersion + "]: document " +
+                    "not found";
+            }
             return "current version [" + currentVersion + "] is different than the one provided [" + expectedVersion + "]";
         }
 
