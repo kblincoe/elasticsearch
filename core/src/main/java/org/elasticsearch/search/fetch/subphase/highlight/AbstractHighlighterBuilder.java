@@ -148,6 +148,66 @@ public abstract class AbstractHighlighterBuilder<HB extends AbstractHighlighterB
         requireFieldMatch(in.readOptionalBoolean());
     }
 
+    /*
+	 * Fixing Issue:21802
+	 * Date:24 Mar, 2017
+	 * This static block is called by its subclass HighlightBuilder, after creating a highlight object 
+	 * parser, it continues to read json commands and allocates them to the fields in this object, and 
+	 * will check the syntax of these commands.
+	 * */
+    static <HB extends AbstractHighlighterBuilder<HB>> BiFunction<QueryParseContext, HB, HB> setupParser(
+            ObjectParser<HB, QueryParseContext> parser) {
+        parser.declareStringArray(fromList(String.class, HB::preTags), PRE_TAGS_FIELD);
+        parser.declareStringArray(fromList(String.class, HB::postTags), POST_TAGS_FIELD);
+        parser.declareString(HB::order, ORDER_FIELD);
+        parser.declareBoolean(HB::highlightFilter, HIGHLIGHT_FILTER_FIELD);
+        parser.declareInt(HB::fragmentSize, FRAGMENT_SIZE_FIELD);
+        parser.declareInt(HB::numOfFragments, NUMBER_OF_FRAGMENTS_FIELD);
+        parser.declareBoolean(HB::requireFieldMatch, REQUIRE_FIELD_MATCH_FIELD);
+        parser.declareString(HB::boundaryScannerType, BOUNDARY_SCANNER_FIELD);
+        parser.declareInt(HB::boundaryMaxScan, BOUNDARY_MAX_SCAN_FIELD);
+        parser.declareString((HB hb, String bc) -> hb.boundaryChars(bc.toCharArray()) , BOUNDARY_CHARS_FIELD);
+        parser.declareString(HB::boundaryScannerLocale, BOUNDARY_SCANNER_LOCALE_FIELD);
+        parser.declareString(HB::highlighterType, TYPE_FIELD);
+        parser.declareString(HB::fragmenter, FRAGMENTER_FIELD);
+        parser.declareInt(HB::noMatchSize, NO_MATCH_SIZE_FIELD);
+        parser.declareBoolean(HB::forceSource, FORCE_SOURCE_FIELD);
+        parser.declareInt(HB::phraseLimit, PHRASE_LIMIT_FIELD);
+        parser.declareObject(HB::options, (XContentParser p, QueryParseContext c) -> {
+            try {
+                return p.map();
+            } catch (IOException e) {
+                throw new RuntimeException("Error parsing options", e);
+            }
+        }, OPTIONS_FIELD);
+        parser.declareObject(HB::highlightQuery, (XContentParser p, QueryParseContext c) -> {
+            try {
+                return c.parseInnerQueryBuilder();
+            } catch (IOException e) {
+                throw new RuntimeException("Error parsing query", e);
+            }
+        }, HIGHLIGHT_QUERY_FIELD);
+        return (QueryParseContext c, HB hb) -> {
+            try {           	
+            	/*
+            	 * Fixing Issue:21802
+            	 * Date:24 Mar, 2017
+            	 * This method commence a syntax checking on the inputted json commands. It
+            	 * guarantees that no syntax error exists before searching any data.
+            	 * */
+                parser.parse(c.parser(), hb, c);
+                
+                if (hb.preTags() != null && hb.postTags() == null) {
+                    throw new ParsingException(c.parser().getTokenLocation(),
+                            "pre_tags are set but post_tags are not set");
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            return hb;
+        };
+    }
+    
     /**
      * write common parameters to {@link StreamOutput}
      */
@@ -593,65 +653,7 @@ public abstract class AbstractHighlighterBuilder<HB extends AbstractHighlighterB
         }
     }
 
-    /*
-	 * Fixing Issue:21802
-	 * Date:24 Mar, 2017
-	 * This static block is called by its subclass HighlightBuilder, after creating a highlight object 
-	 * parser, it continues to read json commands and allocates them to the fields in this object, and 
-	 * will check the syntax of these commands.
-	 * */
-    static <HB extends AbstractHighlighterBuilder<HB>> BiFunction<QueryParseContext, HB, HB> setupParser(
-            ObjectParser<HB, QueryParseContext> parser) {
-        parser.declareStringArray(fromList(String.class, HB::preTags), PRE_TAGS_FIELD);
-        parser.declareStringArray(fromList(String.class, HB::postTags), POST_TAGS_FIELD);
-        parser.declareString(HB::order, ORDER_FIELD);
-        parser.declareBoolean(HB::highlightFilter, HIGHLIGHT_FILTER_FIELD);
-        parser.declareInt(HB::fragmentSize, FRAGMENT_SIZE_FIELD);
-        parser.declareInt(HB::numOfFragments, NUMBER_OF_FRAGMENTS_FIELD);
-        parser.declareBoolean(HB::requireFieldMatch, REQUIRE_FIELD_MATCH_FIELD);
-        parser.declareString(HB::boundaryScannerType, BOUNDARY_SCANNER_FIELD);
-        parser.declareInt(HB::boundaryMaxScan, BOUNDARY_MAX_SCAN_FIELD);
-        parser.declareString((HB hb, String bc) -> hb.boundaryChars(bc.toCharArray()) , BOUNDARY_CHARS_FIELD);
-        parser.declareString(HB::boundaryScannerLocale, BOUNDARY_SCANNER_LOCALE_FIELD);
-        parser.declareString(HB::highlighterType, TYPE_FIELD);
-        parser.declareString(HB::fragmenter, FRAGMENTER_FIELD);
-        parser.declareInt(HB::noMatchSize, NO_MATCH_SIZE_FIELD);
-        parser.declareBoolean(HB::forceSource, FORCE_SOURCE_FIELD);
-        parser.declareInt(HB::phraseLimit, PHRASE_LIMIT_FIELD);
-        parser.declareObject(HB::options, (XContentParser p, QueryParseContext c) -> {
-            try {
-                return p.map();
-            } catch (IOException e) {
-                throw new RuntimeException("Error parsing options", e);
-            }
-        }, OPTIONS_FIELD);
-        parser.declareObject(HB::highlightQuery, (XContentParser p, QueryParseContext c) -> {
-            try {
-                return c.parseInnerQueryBuilder();
-            } catch (IOException e) {
-                throw new RuntimeException("Error parsing query", e);
-            }
-        }, HIGHLIGHT_QUERY_FIELD);
-        return (QueryParseContext c, HB hb) -> {
-            try {           	
-            	/*
-            	 * Fixing Issue:21802
-            	 * Date:24 Mar, 2017
-            	 * This method commence a syntax checking on the inputted json commands. It
-            	 * guarantees that no syntax error exists before searching any data.
-            	 * */
-                parser.parse(c.parser(), hb, c);
-                
-                if (hb.preTags() != null && hb.postTags() == null) {
-                    throw new ParsingException(c.parser().getTokenLocation(),
-                            "pre_tags are set but post_tags are not set");
-                }
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-            return hb;
-        };
-    }
+    
 
     @Override
     public final int hashCode() {

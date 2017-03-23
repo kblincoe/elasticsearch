@@ -142,6 +142,11 @@ public final class ObjectParser<Value, Context> extends AbstractObjectParser<Val
      */
     public Value parse(XContentParser parser, Value value, Context context) throws IOException {
         XContentParser.Token token;
+        
+        if(parser!=null){
+        	this.xContentParser=parser;
+        }
+        
         if (parser.currentToken() == XContentParser.Token.START_OBJECT) {
             token = parser.currentToken();
         } else {
@@ -171,7 +176,7 @@ public final class ObjectParser<Value, Context> extends AbstractObjectParser<Val
                 	 * Add local variable "parser" to match the modified method assertSupports. "parser" is used to 
                 	 * get current value (according to the issue here requires String value).
                 	 * */
-                    fieldParser.assertSupports(parser, name, token, currentFieldName);
+                    fieldParser.assertSupports(name, token, currentFieldName);
                     
                     parseSub(parser, fieldParser, currentFieldName, value, context);
                 }
@@ -428,7 +433,7 @@ public final class ObjectParser<Value, Context> extends AbstractObjectParser<Val
     	 * Add new logic in order to filter String value "true" and "false", to ensure that these values will 
     	 * not trigger an IllegalArgumentException. 
     	 * */
-        void assertSupports(XContentParser parser, String parserName, XContentParser.Token token,
+        void assertSupports(String parserName, XContentParser.Token token,
 				String currentFieldName) {
 			if (parseField.match(currentFieldName) == false) {
 				throw new IllegalStateException("[" + parserName + "] parsefield doesn't accept: " + currentFieldName);
@@ -436,7 +441,8 @@ public final class ObjectParser<Value, Context> extends AbstractObjectParser<Val
 			if (supportedTokens.contains(token) == false) {
 				if (token == XContentParser.Token.VALUE_STRING) {
 					try {
-						if ((parser.text().equals("true")) || (parser.text().equals("false"))) {
+						if ((xContentParser.text().equals("true")) || (xContentParser.text().equals("false"))) {
+							xContentParser=null;
                             return;
 						}
 					} catch (IOException e) {
