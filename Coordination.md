@@ -1,6 +1,7 @@
 Note: number of pull requests has changed to 2-3 per group due to changes to assignment structure. See details on Canvas.
 
 Issue number: group name (no links to elasticsearch, just the number - sort by issue number)
+* 3590: 1337
 * 4704: java ych
 * 5042: jk
 * 5341: 100
@@ -11,7 +12,6 @@ Issue number: group name (no links to elasticsearch, just the number - sort by i
 * 9538: Krispy Belgian Cookies
 * 10096: jk
 * 10441: The Best Engineers, The Best
-* 10795: 1337
 * 11295: global elite
 * 11310: java ych
 * 12315: Oink
