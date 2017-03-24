@@ -27,6 +27,8 @@ import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.io.stream.Writeable;
+import org.elasticsearch.common.logging.DeprecationLogger;
+import org.elasticsearch.common.logging.Loggers;
 import org.elasticsearch.common.xcontent.ToXContent;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentParser;
@@ -44,6 +46,8 @@ import java.util.function.Function;
  * Context used to fetch the {@code _source}.
  */
 public class FetchSourceContext implements Writeable, ToXContent {
+
+    private static final DeprecationLogger DEPRECATION_LOGGER = new DeprecationLogger(Loggers.getLogger(ParseField.class));
 
     public static final ParseField INCLUDES_FIELD = new ParseField("includes", "include");
     public static final ParseField EXCLUDES_FIELD = new ParseField("excludes", "exclude");
@@ -148,7 +152,7 @@ public class FetchSourceContext implements Writeable, ToXContent {
                 if (token == XContentParser.Token.FIELD_NAME) {
                     currentFieldName = parser.currentName();
                 } else if (token == XContentParser.Token.START_ARRAY) {
-                    if (parseFieldMatcher.match(currentFieldName, INCLUDES_FIELD)) {
+                    if ("includes".equals(currentFieldName) || "include".equals(currentFieldName)){
                         List<String> includesList = new ArrayList<>();
                         while ((token = parser.nextToken()) != XContentParser.Token.END_ARRAY) {
                             if (token == XContentParser.Token.VALUE_STRING) {
@@ -159,6 +163,9 @@ public class FetchSourceContext implements Writeable, ToXContent {
                             }
                         }
                         includes = includesList.toArray(new String[includesList.size()]);
+                        if ("include".equals(currentFieldName)){
+                            DEPRECATION_LOGGER.deprecated("Deprecated field [include] used, expected [includes] instead");
+                        }
                     } else if (parseFieldMatcher.match(currentFieldName, EXCLUDES_FIELD)) {
                         List<String> excludesList = new ArrayList<>();
                         while ((token = parser.nextToken()) != XContentParser.Token.END_ARRAY) {
@@ -175,8 +182,11 @@ public class FetchSourceContext implements Writeable, ToXContent {
                                 + " in [" + currentFieldName + "].", parser.getTokenLocation());
                     }
                 } else if (token == XContentParser.Token.VALUE_STRING) {
-                    if (parseFieldMatcher.match(currentFieldName, INCLUDES_FIELD)) {
+                    if ("includes".equals(currentFieldName) || "include".equals(currentFieldName)) {
                         includes = new String[] {parser.text()};
+                        if ("include".equals(currentFieldName)){
+                            DEPRECATION_LOGGER.deprecated("Deprecated field [include] used, expected [includes] instead");
+                        }
                     } else if (parseFieldMatcher.match(currentFieldName, EXCLUDES_FIELD)) {
                         excludes = new String[] {parser.text()};
                     } else {
