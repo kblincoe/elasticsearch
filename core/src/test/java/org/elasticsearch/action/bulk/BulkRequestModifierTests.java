@@ -29,6 +29,7 @@ import org.elasticsearch.action.ActionListener;
 import org.elasticsearch.action.DocWriteRequest;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
+import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.shard.ShardId;
 import org.elasticsearch.test.ESTestCase;
@@ -117,7 +118,7 @@ public class BulkRequestModifierTests extends ESTestCase {
         for (DocWriteRequest actionRequest : bulkRequest.requests()) {
             IndexRequest indexRequest = (IndexRequest) actionRequest;
             IndexResponse indexResponse = new IndexResponse(new ShardId("index", "_na_", 0), indexRequest.type(),
-                                                               indexRequest.id(), 1, 1, true);
+                                                               indexRequest.id(), 1, 1, true, TimeValue.timeValueMillis(0L));
             originalResponses.add(new BulkItemResponse(Integer.parseInt(indexRequest.id()), indexRequest.opType(), indexResponse));
         }
         bulkResponseListener.onResponse(new BulkResponse(originalResponses.toArray(new BulkItemResponse[originalResponses.size()]), 0));

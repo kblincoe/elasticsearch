@@ -182,10 +182,11 @@ Index response:
   },
   "created": true,
   "result": "created",
-  "_seq_no" : 1
+  "_seq_no" : 1,
+  "took" : 0
 }
 --------------------------------------------------
-// TESTRESPONSE
+// TESTRESPONSE[s/"took" : 0/"took" : $body.took/]
 
 Percolating an existing document, using the index response as basis to build to new search request:
 

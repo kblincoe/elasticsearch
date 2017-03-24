@@ -52,6 +52,7 @@ import org.elasticsearch.cluster.routing.ShardRoutingState;
 import org.elasticsearch.cluster.routing.TestShardRouting;
 import org.elasticsearch.common.collect.Iterators;
 import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.Index;
 import org.elasticsearch.index.engine.Engine;
@@ -559,7 +560,8 @@ public abstract class ESIndexLevelReplicationTestCase extends IndexShardTestCase
             request.id(),
             indexResult.getSeqNo(),
             indexResult.getVersion(),
-            indexResult.isCreated());
+            indexResult.isCreated(),
+            TimeValue.timeValueNanos(indexResult.getTook()));
     }
 
     /**

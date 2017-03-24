@@ -49,6 +49,7 @@ import org.elasticsearch.common.collect.Tuple;
 import org.elasticsearch.common.inject.Inject;
 import org.elasticsearch.common.logging.ESLoggerFactory;
 import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentHelper;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.VersionType;
@@ -69,6 +70,7 @@ import org.elasticsearch.transport.TransportService;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 import java.util.function.LongSupplier;
 
 /** Performs shard-level bulk (index, delete or update) operations */
@@ -136,7 +138,8 @@ public class TransportShardBulkAction extends TransportWriteAction<BulkShardRequ
             return new BulkItemResultHolder(null, indexResult, bulkItemRequest);
         } else {
             IndexResponse response = new IndexResponse(primary.shardId(), indexRequest.type(), indexRequest.id(),
-                    indexResult.getSeqNo(), indexResult.getVersion(), indexResult.isCreated());
+                    indexResult.getSeqNo(), indexResult.getVersion(), indexResult.isCreated(),
+                    TimeValue.timeValueNanos(indexResult.getTook()));
             return new BulkItemResultHolder(response, indexResult, bulkItemRequest);
         }
     }
@@ -149,7 +152,8 @@ public class TransportShardBulkAction extends TransportWriteAction<BulkShardRequ
             return new BulkItemResultHolder(null, deleteResult, bulkItemRequest);
         } else {
             DeleteResponse response = new DeleteResponse(primary.shardId(), deleteRequest.type(), deleteRequest.id(),
-                    deleteResult.getSeqNo(), deleteResult.getVersion(), deleteResult.isFound());
+                    deleteResult.getSeqNo(), deleteResult.getVersion(), deleteResult.isFound(),
+                    TimeValue.timeValueNanos(deleteResult.getTook()));
             return new BulkItemResultHolder(response, deleteResult, bulkItemRequest);
         }
     }
@@ -301,11 +305,12 @@ public class TransportShardBulkAction extends TransportWriteAction<BulkShardRequ
                         IndexRequest updateIndexRequest = translate.action();
                         final IndexResponse indexResponse = new IndexResponse(primary.shardId(),
                             updateIndexRequest.type(), updateIndexRequest.id(), updateOperationResult.getSeqNo(),
-                            updateOperationResult.getVersion(), ((Engine.IndexResult) updateOperationResult).isCreated());
+                            updateOperationResult.getVersion(), ((Engine.IndexResult) updateOperationResult).isCreated(),
+                            TimeValue.timeValueNanos(updateOperationResult.getTook()));
                         BytesReference indexSourceAsBytes = updateIndexRequest.source();
                         updateResponse = new UpdateResponse(indexResponse.getShardInfo(),
                             indexResponse.getShardId(), indexResponse.getType(), indexResponse.getId(), indexResponse.getSeqNo(),
-                            indexResponse.getVersion(), indexResponse.getResult());
+                            indexResponse.getVersion(), indexResponse.getResult(), indexResponse.getTook());
                         if ((updateRequest.fetchSource() != null && updateRequest.fetchSource().fetchSource()) ||
                             (updateRequest.fields() != null && updateRequest.fields().length > 0)) {
                             Tuple<XContentType, Map<String, Object>> sourceAndContent =
@@ -320,10 +325,11 @@ public class TransportShardBulkAction extends TransportWriteAction<BulkShardRequ
                         DeleteRequest updateDeleteRequest = translate.action();
                         DeleteResponse deleteResponse = new DeleteResponse(primary.shardId(),
                             updateDeleteRequest.type(), updateDeleteRequest.id(), updateOperationResult.getSeqNo(),
-                            updateOperationResult.getVersion(), ((Engine.DeleteResult) updateOperationResult).isFound());
+                            updateOperationResult.getVersion(), ((Engine.DeleteResult) updateOperationResult).isFound(),
+                            TimeValue.timeValueNanos(updateOperationResult.getTook()));
                         updateResponse = new UpdateResponse(deleteResponse.getShardInfo(),
                             deleteResponse.getShardId(), deleteResponse.getType(), deleteResponse.getId(), deleteResponse.getSeqNo(),
-                            deleteResponse.getVersion(), deleteResponse.getResult());
+                            deleteResponse.getVersion(), deleteResponse.getResult(), deleteResponse.getTook());
                         updateResponse.setGetResult(updateHelper.extractGetResult(updateRequest,
                             request.index(), deleteResponse.getVersion(), translate.updatedSourceAsMap(),
                             translate.updateSourceContentType(), null));

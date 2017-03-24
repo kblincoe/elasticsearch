@@ -26,6 +26,7 @@ import org.elasticsearch.action.support.replication.ReplicationResponse;
 import org.elasticsearch.common.bytes.BytesArray;
 import org.elasticsearch.common.io.stream.BytesStreamOutput;
 import org.elasticsearch.common.io.stream.StreamInput;
+import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.common.unit.ByteSizeValue;
 import org.elasticsearch.index.VersionType;
@@ -40,6 +41,7 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
@@ -135,7 +137,9 @@ public class IndexRequestTests extends ESTestCase {
         String id = randomAsciiOfLengthBetween(3, 10);
         long version = randomLong();
         boolean created = randomBoolean();
-        IndexResponse indexResponse = new IndexResponse(shardId, type, id, SequenceNumbersService.UNASSIGNED_SEQ_NO, version, created);
+        TimeValue took = TimeValue.timeValueNanos(randomNonNegativeLong());
+        IndexResponse indexResponse = new IndexResponse(shardId, type, id, SequenceNumbersService.UNASSIGNED_SEQ_NO,
+            version, created, took);
         int total = randomIntBetween(1, 10);
         int successful = randomIntBetween(1, 10);
         ReplicationResponse.ShardInfo shardInfo = new ReplicationResponse.ShardInfo(total, successful);

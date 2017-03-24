@@ -21,6 +21,7 @@ package org.elasticsearch.action.index;
 
 import org.elasticsearch.action.DocWriteResponse;
 import org.elasticsearch.common.Strings;
+import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.index.shard.ShardId;
@@ -43,8 +44,8 @@ public class IndexResponse extends DocWriteResponse {
     public IndexResponse() {
     }
 
-    public IndexResponse(ShardId shardId, String type, String id, long seqNo, long version, boolean created) {
-        super(shardId, type, id, seqNo, version, created ? Result.CREATED : Result.UPDATED);
+    public IndexResponse(ShardId shardId, String type, String id, long seqNo, long version, boolean created, TimeValue took) {
+        super(shardId, type, id, seqNo, version, created ? Result.CREATED : Result.UPDATED, took);
     }
 
     @Override
@@ -114,7 +115,7 @@ public class IndexResponse extends DocWriteResponse {
 
         @Override
         public IndexResponse build() {
-            IndexResponse indexResponse = new IndexResponse(shardId, type, id, seqNo, version, created);
+            IndexResponse indexResponse = new IndexResponse(shardId, type, id, seqNo, version, created, took);
             indexResponse.setForcedRefresh(forcedRefresh);
             if (shardInfo != null) {
                 indexResponse.setShardInfo(shardInfo);

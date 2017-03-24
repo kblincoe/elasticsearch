@@ -97,6 +97,7 @@ The result of this bulk operation is:
             "_id": "1",
             "_version": 1,
             "result": "created",
+            "took" : 0,
             "_shards": {
                "total": 2,
                "successful": 1,
@@ -115,6 +116,7 @@ The result of this bulk operation is:
             "_id": "2",
             "_version": 1,
             "result": "not_found",
+            "took" : 1,
             "_shards": {
                "total": 2,
                "successful": 1,
@@ -131,6 +133,7 @@ The result of this bulk operation is:
             "_id": "3",
             "_version": 1,
             "result": "created",
+            "took" : 2,
             "_shards": {
                "total": 2,
                "successful": 1,
@@ -148,6 +151,7 @@ The result of this bulk operation is:
             "_id": "1",
             "_version": 2,
             "result": "updated",
+            "took" : 3,
             "_shards": {
                 "total": 2,
                 "successful": 1,
@@ -160,7 +164,16 @@ The result of this bulk operation is:
    ]
 }
 --------------------------------------------------
-// TESTRESPONSE[s/"took": 30/"took": $body.took/ s/"index_uuid": .../"index_uuid": $body.items.3.update.error.index_uuid/ s/"_seq_no" : 0/"_seq_no" : $body.items.0.index._seq_no/ s/"_seq_no" : 1/"_seq_no" : $body.items.1.delete._seq_no/ s/"_seq_no" : 2/"_seq_no" : $body.items.2.create._seq_no/ s/"_seq_no" : 3/"_seq_no" : $body.items.3.update._seq_no/]
+// TESTRESPONSE[s/"took": 30/"took": $body.took/]
+// TESTRESPONSE[s/"index_uuid": .../"index_uuid": $body.items.3.update.error.index_uuid/]
+// TESTRESPONSE[s/"_seq_no" : 0/"_seq_no" : $body.items.0.index._seq_no/]
+// TESTRESPONSE[s/"_seq_no" : 1/"_seq_no" : $body.items.1.delete._seq_no/]
+// TESTRESPONSE[s/"_seq_no" : 2/"_seq_no" : $body.items.2.create._seq_no/]
+// TESTRESPONSE[s/"_seq_no" : 3/"_seq_no" : $body.items.3.update._seq_no/]
+// TESTRESPONSE[s/"took" : 0/"took" : $body.items.0.index.took/]
+// TESTRESPONSE[s/"took" : 1/"took" : $body.items.1.delete.took/]
+// TESTRESPONSE[s/"took" : 2/"took" : $body.items.2.create.took/]
+// TESTRESPONSE[s/"took" : 3/"took" : $body.items.3.update.took/]
 
 The endpoints are `/_bulk`, `/{index}/_bulk`, and `{index}/{type}/_bulk`.
 When the index or the index/type are provided, they will be used by

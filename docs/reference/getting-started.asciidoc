@@ -316,6 +316,7 @@ And the response:
   "_id" : "1",
   "_version" : 1,
   "result" : "created",
+  "took" : 0,
   "_shards" : {
     "total" : 2,
     "successful" : 1,
@@ -326,6 +327,7 @@ And the response:
 }
 --------------------------------------------------
 // TESTRESPONSE[s/"_seq_no" : 0/"_seq_no" : $body._seq_no/]
+// TESTRESPONSE[s/"took" : 0/"took" : $body.took/]
 
 From the above, we can see that a new customer document was successfully created inside the customer index and the external type. The document also has an internal id of 1 which we specified at index time.
 

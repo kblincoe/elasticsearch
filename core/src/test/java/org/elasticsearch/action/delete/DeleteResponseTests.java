@@ -23,6 +23,7 @@ import org.elasticsearch.action.support.replication.ReplicationResponse;
 import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.bytes.BytesReference;
 import org.elasticsearch.common.collect.Tuple;
+import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.seqno.SequenceNumbersService;
@@ -34,24 +35,28 @@ import java.io.IOException;
 
 import static org.elasticsearch.action.index.IndexResponseTests.assertDocWriteResponse;
 import static org.elasticsearch.cluster.metadata.IndexMetaData.INDEX_UUID_NA_VALUE;
+import static org.elasticsearch.common.unit.TimeValue.parseTimeValue;
 import static org.elasticsearch.common.xcontent.XContentHelper.toXContent;
 
 public class DeleteResponseTests extends ESTestCase {
 
     public void testToXContent() {
         {
-            DeleteResponse response = new DeleteResponse(new ShardId("index", "index_uuid", 0), "type", "id", 3, 5, true);
+            DeleteResponse response = new DeleteResponse(new ShardId("index", "index_uuid", 0), "type", "id", 3, 5, true,
+                TimeValue.timeValueMillis(55555));
             String output = Strings.toString(response);
             assertEquals("{\"found\":true,\"_index\":\"index\",\"_type\":\"type\",\"_id\":\"id\",\"_version\":5,\"result\":\"deleted\"," +
-                "\"_shards\":null,\"_seq_no\":3}", output);
+                "\"took\":55555,\"_shards\":null,\"_seq_no\":3}", output);
         }
         {
-            DeleteResponse response = new DeleteResponse(new ShardId("index", "index_uuid", 0), "type", "id", -1, 7, true);
+            DeleteResponse response = new DeleteResponse(new ShardId("index", "index_uuid", 0), "type", "id", -1, 7, true,
+                TimeValue.timeValueNanos(54321));
             response.setForcedRefresh(true);
             response.setShardInfo(new ReplicationResponse.ShardInfo(10, 5));
             String output = Strings.toString(response);
+            // Took expected to be 0 due to conversion from nanosecond to millisecond for value 54321
             assertEquals("{\"found\":true,\"_index\":\"index\",\"_type\":\"type\",\"_id\":\"id\",\"_version\":7,\"result\":\"deleted\"," +
-                "\"forced_refresh\":true,\"_shards\":{\"total\":10,\"successful\":5,\"failed\":0}}", output);
+                "\"took\":0,\"forced_refresh\":true,\"_shards\":{\"total\":10,\"successful\":5,\"failed\":0}}", output);
         }
     }
 
@@ -100,14 +105,15 @@ public class DeleteResponseTests extends ESTestCase {
         long version = randomBoolean() ? randomNonNegativeLong() : randomIntBetween(0, 10000);
         boolean found = randomBoolean();
         boolean forcedRefresh = randomBoolean();
+        TimeValue took = parseTimeValue(randomPositiveTimeValue(), "test");
 
         Tuple<ReplicationResponse.ShardInfo, ReplicationResponse.ShardInfo> shardInfos = RandomObjects.randomShardInfo(random());
 
-        DeleteResponse actual = new DeleteResponse(new ShardId(index, indexUUid, shardId), type, id, seqNo, version, found);
+        DeleteResponse actual = new DeleteResponse(new ShardId(index, indexUUid, shardId), type, id, seqNo, version, found, took);
         actual.setForcedRefresh(forcedRefresh);
         actual.setShardInfo(shardInfos.v1());
 
-        DeleteResponse expected = new DeleteResponse(new ShardId(index, INDEX_UUID_NA_VALUE, -1), type, id, seqNo, version, found);
+        DeleteResponse expected = new DeleteResponse(new ShardId(index, INDEX_UUID_NA_VALUE, -1), type, id, seqNo, version, found, took);
         expected.setForcedRefresh(forcedRefresh);
         expected.setShardInfo(shardInfos.v2());
 

@@ -900,6 +900,7 @@ PUT /myindex/type/1?pipeline=monthlyindex
   "_id" : "1",
   "_version" : 1,
   "result" : "created",
+  "took" : 0,
   "_shards" : {
     "total" : 2,
     "successful" : 1,
@@ -909,7 +910,7 @@ PUT /myindex/type/1?pipeline=monthlyindex
   "_seq_no" : 0
 }
 --------------------------------------------------
-// TESTRESPONSE
+// TESTRESPONSE[s/"took" : 0/"took" : $body.took/]
 
 
 The above request will not index this document into the `myindex` index, but into the `myindex-2016-04-01` index because

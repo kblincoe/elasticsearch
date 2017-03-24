@@ -104,6 +104,7 @@ import static java.util.Collections.singletonList;
 import static java.util.Collections.synchronizedSet;
 import static org.apache.lucene.util.TestUtil.randomSimpleString;
 import static org.elasticsearch.action.bulk.BackoffPolicy.constantBackoff;
+import static org.elasticsearch.common.unit.TimeValue.parseTimeValue;
 import static org.elasticsearch.common.unit.TimeValue.timeValueMillis;
 import static org.elasticsearch.common.unit.TimeValue.timeValueNanos;
 import static org.elasticsearch.common.unit.TimeValue.timeValueSeconds;
@@ -291,7 +292,8 @@ public class AsyncBulkByScrollActionTests extends ESTestCase {
                 responses[i] = new BulkItemResponse(
                     i,
                     opType,
-                    new IndexResponse(shardId, "type", "id" + i, randomInt(20), randomInt(), createdResponse));
+                    new IndexResponse(shardId, "type", "id" + i, randomInt(20), randomInt(), createdResponse,
+                        parseTimeValue(randomPositiveTimeValue(), "test")));
             }
             new DummyAsyncBulkByScrollAction().onBulkResponse(timeValueNanos(System.nanoTime()), new BulkResponse(responses, 0));
             assertEquals(versionConflicts, testTask.getStatus().getVersionConflicts());
@@ -796,11 +798,16 @@ public class AsyncBulkByScrollActionTests extends ESTestCase {
                                 index.id(),
                                 randomInt(20),
                                 randomIntBetween(0, Integer.MAX_VALUE),
-                                true);
+                                true,
+                                parseTimeValue(randomPositiveTimeValue(), "test"));
                     } else if (item instanceof UpdateRequest) {
                         UpdateRequest update = (UpdateRequest) item;
-                        response = new UpdateResponse(shardId, update.type(), update.id(),
-                                randomIntBetween(0, Integer.MAX_VALUE), Result.CREATED);
+                        response = new UpdateResponse(
+                                shardId,
+                                update.type(),
+                                update.id(),
+                                randomIntBetween(0, Integer.MAX_VALUE),
+                                Result.CREATED, parseTimeValue(randomPositiveTimeValue(), "test"));
                     } else if (item instanceof DeleteRequest) {
                         DeleteRequest delete = (DeleteRequest) item;
                         response =
@@ -810,7 +817,8 @@ public class AsyncBulkByScrollActionTests extends ESTestCase {
                                 delete.id(),
                                 randomInt(20),
                                 randomIntBetween(0, Integer.MAX_VALUE),
-                                true);
+                                true,
+                                parseTimeValue(randomPositiveTimeValue(), "test"));
                     } else {
                         throw new RuntimeException("Unknown request:  " + item);
                     }

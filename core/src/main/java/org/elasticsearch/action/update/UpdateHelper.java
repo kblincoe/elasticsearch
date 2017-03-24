@@ -31,6 +31,7 @@ import org.elasticsearch.common.component.AbstractComponent;
 import org.elasticsearch.common.io.stream.BytesStreamOutput;
 import org.elasticsearch.common.io.stream.Streamable;
 import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentHelper;
 import org.elasticsearch.common.xcontent.XContentType;
@@ -82,6 +83,7 @@ public class UpdateHelper extends AbstractComponent {
      */
     @SuppressWarnings("unchecked")
     protected Result prepare(ShardId shardId, UpdateRequest request, final GetResult getResult, LongSupplier nowInMillis) {
+        Long startTime = System.nanoTime();
         if (!getResult.isExists()) {
             if (request.upsertRequest() == null && !request.docAsUpsert()) {
                 throw new DocumentMissingException(shardId, request.type(), request.id());
@@ -109,7 +111,7 @@ public class UpdateHelper extends AbstractComponent {
                                 request.script.getIdOrCode());
                     }
                     UpdateResponse update = new UpdateResponse(shardId, getResult.getType(), getResult.getId(),
-                            getResult.getVersion(), DocWriteResponse.Result.NOOP);
+                            getResult.getVersion(), DocWriteResponse.Result.NOOP, TimeValue.timeValueNanos(System.nanoTime() - startTime));
                     update.setGetResult(getResult);
                     return new Result(update, DocWriteResponse.Result.NOOP, upsertDoc, XContentType.JSON);
                 }
@@ -197,12 +199,14 @@ public class UpdateHelper extends AbstractComponent {
                     .setRefreshPolicy(request.getRefreshPolicy());
             return new Result(deleteRequest, DocWriteResponse.Result.DELETED, updatedSourceAsMap, updateSourceContentType);
         } else if ("none".equals(operation)) {
-            UpdateResponse update = new UpdateResponse(shardId, getResult.getType(), getResult.getId(), getResult.getVersion(), DocWriteResponse.Result.NOOP);
+            UpdateResponse update = new UpdateResponse(shardId, getResult.getType(), getResult.getId(), getResult.getVersion(),
+                DocWriteResponse.Result.NOOP, TimeValue.timeValueNanos(System.nanoTime() - startTime));
             update.setGetResult(extractGetResult(request, request.index(), getResult.getVersion(), updatedSourceAsMap, updateSourceContentType, getResult.internalSourceRef()));
             return new Result(update, DocWriteResponse.Result.NOOP, updatedSourceAsMap, updateSourceContentType);
         } else {
             logger.warn("Used update operation [{}] for script [{}], doing nothing...", operation, request.script.getIdOrCode());
-            UpdateResponse update = new UpdateResponse(shardId, getResult.getType(), getResult.getId(), getResult.getVersion(), DocWriteResponse.Result.NOOP);
+            UpdateResponse update = new UpdateResponse(shardId, getResult.getType(), getResult.getId(), getResult.getVersion(),
+                DocWriteResponse.Result.NOOP, TimeValue.timeValueNanos(System.nanoTime() - startTime));
             return new Result(update, DocWriteResponse.Result.NOOP, updatedSourceAsMap, updateSourceContentType);
         }
     }
