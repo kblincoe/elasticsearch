@@ -87,7 +87,7 @@ public class RestNoopBulkAction extends BaseRestHandler {
     private static class BulkRestBuilderListener extends RestBuilderListener<BulkRequest> {
         private final BulkItemResponse ITEM_RESPONSE = new BulkItemResponse(1, DocWriteRequest.OpType.UPDATE,
             new UpdateResponse(new ShardId("mock", "", 1), "mock_type", "1", 1L,
-                DocWriteResponse.Result.CREATED, new TimeValue(1L)));
+                DocWriteResponse.Result.CREATED, TimeValue.timeValueMillis(1L)));
 
         private final RestRequest request;
 

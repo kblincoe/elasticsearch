@@ -38,7 +38,7 @@ import org.elasticsearch.transport.TransportService;
 public class TransportNoopBulkAction extends HandledTransportAction<BulkRequest, BulkResponse> {
     private static final BulkItemResponse ITEM_RESPONSE = new BulkItemResponse(1, DocWriteRequest.OpType.UPDATE,
         new UpdateResponse(new ShardId("mock", "", 1), "mock_type", "1", 1L, DocWriteResponse.Result.CREATED,
-            new TimeValue(1L)));
+            TimeValue.timeValueMillis(1L)));
 
     @Inject
     public TransportNoopBulkAction(Settings settings, ThreadPool threadPool, TransportService transportService,

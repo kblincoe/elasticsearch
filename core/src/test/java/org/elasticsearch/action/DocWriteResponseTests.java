@@ -46,7 +46,7 @@ public class DocWriteResponseTests extends ESTestCase {
                         SequenceNumbersService.UNASSIGNED_SEQ_NO,
                         0,
                         Result.CREATED,
-                        new TimeValue(0L)) {};
+                        TimeValue.timeValueMillis(0L)) {};
         assertEquals("/index/type/id", response.getLocation(null));
         assertEquals("/index/type/id?routing=test_routing", response.getLocation("test_routing"));
     }
@@ -60,7 +60,7 @@ public class DocWriteResponseTests extends ESTestCase {
                         SequenceNumbersService.UNASSIGNED_SEQ_NO,
                         0,
                         Result.CREATED,
-                        new TimeValue(0L)) {};
+                        TimeValue.timeValueMillis(0L)) {};
         assertEquals("/index/type/%E2%9D%A4", response.getLocation(null));
         assertEquals("/index/type/%E2%9D%A4?routing=%C3%A4", response.getLocation("ä"));
     }
@@ -74,7 +74,7 @@ public class DocWriteResponseTests extends ESTestCase {
                         SequenceNumbersService.UNASSIGNED_SEQ_NO,
                         0,
                         Result.CREATED,
-                        new TimeValue(0L)) {};
+                        TimeValue.timeValueMillis(0L)) {};
         assertEquals("/index/type/a+b", response.getLocation(null));
         assertEquals("/index/type/a+b?routing=c+d", response.getLocation("c d"));
     }
@@ -92,7 +92,7 @@ public class DocWriteResponseTests extends ESTestCase {
                 SequenceNumbersService.UNASSIGNED_SEQ_NO,
                 0,
                 Result.CREATED,
-                new TimeValue(0L)) {
+                TimeValue.timeValueMillis(0L)) {
                 // DocWriteResponse is abstract so we have to sneak a subclass in here to test it.
             };
         response.setShardInfo(new ShardInfo(1, 1));

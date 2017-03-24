@@ -111,7 +111,7 @@ public class UpdateHelper extends AbstractComponent {
                                 request.script.getIdOrCode());
                     }
                     UpdateResponse update = new UpdateResponse(shardId, getResult.getType(), getResult.getId(),
-                            getResult.getVersion(), DocWriteResponse.Result.NOOP, TimeValue.timeValueNanos(System.nanoTime()-startTime));
+                            getResult.getVersion(), DocWriteResponse.Result.NOOP, TimeValue.timeValueNanos(System.nanoTime() - startTime));
                     update.setGetResult(getResult);
                     return new Result(update, DocWriteResponse.Result.NOOP, upsertDoc, XContentType.JSON);
                 }
@@ -200,13 +200,13 @@ public class UpdateHelper extends AbstractComponent {
             return new Result(deleteRequest, DocWriteResponse.Result.DELETED, updatedSourceAsMap, updateSourceContentType);
         } else if ("none".equals(operation)) {
             UpdateResponse update = new UpdateResponse(shardId, getResult.getType(), getResult.getId(), getResult.getVersion(),
-                DocWriteResponse.Result.NOOP, TimeValue.timeValueNanos(System.nanoTime()-startTime));
+                DocWriteResponse.Result.NOOP, TimeValue.timeValueNanos(System.nanoTime() - startTime));
             update.setGetResult(extractGetResult(request, request.index(), getResult.getVersion(), updatedSourceAsMap, updateSourceContentType, getResult.internalSourceRef()));
             return new Result(update, DocWriteResponse.Result.NOOP, updatedSourceAsMap, updateSourceContentType);
         } else {
             logger.warn("Used update operation [{}] for script [{}], doing nothing...", operation, request.script.getIdOrCode());
             UpdateResponse update = new UpdateResponse(shardId, getResult.getType(), getResult.getId(), getResult.getVersion(),
-                DocWriteResponse.Result.NOOP, TimeValue.timeValueNanos(System.nanoTime()-startTime));
+                DocWriteResponse.Result.NOOP, TimeValue.timeValueNanos(System.nanoTime() - startTime));
             return new Result(update, DocWriteResponse.Result.NOOP, updatedSourceAsMap, updateSourceContentType);
         }
     }

@@ -271,7 +271,7 @@ public abstract class DocWriteResponse extends ReplicationResponse implements Wr
         if (in.getVersion().onOrAfter(Version.V_6_0_0_alpha1_UNRELEASED)) {
             took = new TimeValue(in);
         } else {
-            took = new TimeValue(-1L);
+            took = TimeValue.timeValueMillis(-1L);
         }
     }
 
@@ -354,7 +354,7 @@ public abstract class DocWriteResponse extends ReplicationResponse implements Wr
                 }
             } else if (TOOK.equals(currentFieldName)) {
                 // parser.longValue() returns took time in milliseconds
-                context.setTook(new TimeValue(parser.longValue()));
+                context.setTook(TimeValue.timeValueMillis(parser.longValue()));
             } else if (FORCED_REFRESH.equals(currentFieldName)) {
                 context.setForcedRefresh(parser.booleanValue());
             } else if (_SEQ_NO.equals(currentFieldName)) {
