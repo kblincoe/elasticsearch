@@ -71,3 +71,4 @@ Issue number: group name (no links to elasticsearch, just the number - sort by i
 * 23699: LT
 * 23720: LT
 * 23823: Team Old News
+* 23824: Team Old News
