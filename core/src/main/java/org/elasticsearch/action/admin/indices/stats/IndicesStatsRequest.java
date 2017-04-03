@@ -19,6 +19,7 @@
 
 package org.elasticsearch.action.admin.indices.stats;
 
+import org.elasticsearch.action.admin.cluster.node.stats.NodesStatsRequest;
 import org.elasticsearch.action.admin.indices.stats.CommonStatsFlags.Flag;
 import org.elasticsearch.action.support.broadcast.BroadcastRequest;
 import org.elasticsearch.common.io.stream.StreamInput;
@@ -51,6 +52,30 @@ public class IndicesStatsRequest extends BroadcastRequest<IndicesStatsRequest> {
      */
     public IndicesStatsRequest clear() {
         flags.clear();
+        return this;
+    }
+
+    public CommonStatsFlags flags() {
+        return flags;
+    }
+
+    /**
+     * Specify which flags to return
+     */
+    public IndicesStatsRequest flags(CommonStatsFlags flags) {
+        this.flags = flags;
+        return this;
+    }
+
+    /**
+     * Should stats be returned.
+     */
+    public IndicesStatsRequest flags(boolean flags) {
+        if (flags) {
+            this.flags.all();
+        } else {
+            this.flags.clear();
+        }
         return this;
     }
 
