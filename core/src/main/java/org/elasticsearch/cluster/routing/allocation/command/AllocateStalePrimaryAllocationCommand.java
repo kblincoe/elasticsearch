@@ -19,6 +19,7 @@
 
 package org.elasticsearch.cluster.routing.allocation.command;
 
+import org.apache.logging.log4j.Logger;
 import org.elasticsearch.cluster.node.DiscoveryNode;
 import org.elasticsearch.cluster.routing.RecoverySource;
 import org.elasticsearch.cluster.routing.RoutingNode;
@@ -29,6 +30,7 @@ import org.elasticsearch.cluster.routing.allocation.RoutingAllocation;
 import org.elasticsearch.cluster.routing.allocation.decider.Decision;
 import org.elasticsearch.common.ParseField;
 import org.elasticsearch.common.io.stream.StreamInput;
+import org.elasticsearch.common.logging.Loggers;
 import org.elasticsearch.common.xcontent.ObjectParser;
 import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.index.IndexNotFoundException;
@@ -44,6 +46,7 @@ public class AllocateStalePrimaryAllocationCommand extends BasePrimaryAllocation
     public static final String NAME = "allocate_stale_primary";
     public static final ParseField COMMAND_NAME_FIELD = new ParseField(NAME);
 
+    private static final Logger logger = Loggers.getLogger(AllocateStalePrimaryAllocationCommand.class);
     private static final ObjectParser<Builder, Void> STALE_PRIMARY_PARSER = BasePrimaryAllocationCommand.createAllocatePrimaryParser(NAME);
 
     /**
@@ -123,6 +126,7 @@ public class AllocateStalePrimaryAllocationCommand extends BasePrimaryAllocation
         }
 
         initializeUnassignedShard(allocation, routingNodes, routingNode, shardRouting);
+        logger.warn("Allocating a stale primary for [" + index + "][" + shardId + "], this has erased all data in that shard.");
         return new RerouteExplanation(this, allocation.decision(Decision.YES, name() + " (allocation command)", "ignore deciders"));
     }
 
