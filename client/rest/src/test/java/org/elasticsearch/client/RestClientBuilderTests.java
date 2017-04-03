@@ -176,5 +176,19 @@ public class RestClientBuilderTests extends RestClientTestCase {
             assertThat(e.getMessage(), containsString(pathPrefix));
         }
     }
+    
+    public void testSetSystemProperties(){
+    	//this unit test tests if the ClientBuilder build client according to the system properties
+    	//set the http.maxConnections properties to invalid value 
+    	//this will cause NumberFormatException  when building the client with system properties
+    	System.setProperty("http.maxConnections","invalid value");
+    	try (RestClient restClient = RestClient.builder(new HttpHost("localhost", 9200)).build()) {       
+    			 fail("should have failed");    
+		} catch (NumberFormatException | IOException e1) {
+			//reset the system property to avoid break other test caeses
+			System.clearProperty("http.maxConnections");
+		} 
+	 
+    }
 
 }
