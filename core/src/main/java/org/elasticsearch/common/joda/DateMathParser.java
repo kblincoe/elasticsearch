@@ -190,6 +190,11 @@ public class DateMathParser {
     private long parseDateTime(String value, DateTimeZone timeZone, boolean roundUpIfNoTime) {
         DateTimeFormatter parser = dateTimeFormatter.parser();
         if (timeZone != null) {
+            String format = dateTimeFormatter.format();
+            // Non UTC time zones are not compatible with epoch formats
+            if (timeZone != DateTimeZone.UTC && (format.equals("epoch_second") || format.equals("epoch_millis"))) {
+                throw new ElasticsearchParseException("Format [{}] only supports UTC time zones", format);
+            }
             parser = parser.withZone(timeZone);
         }
         try {
