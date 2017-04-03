@@ -92,6 +92,8 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.elasticsearch.cluster.metadata.IndexMetaData.SETTING_AUTO_EXPAND_REPLICAS;
 import static org.elasticsearch.cluster.metadata.IndexMetaData.SETTING_CREATION_DATE;
@@ -499,6 +501,27 @@ public class MetaDataCreateIndexService extends AbstractComponent {
     private void validate(CreateIndexClusterStateUpdateRequest request, ClusterState state) {
         validateIndexName(request.index(), state);
         validateIndexSettings(request.index(), request.settings());
+        validateIndexDateFormat(request.index(), request.mappings());
+    }
+
+    public void validateIndexDateFormat(String indexName, Map<String, String> mappings) throws IndexCreationException{
+        List<String> validationErrors = getIndexDateFormatValidationErrors(mappings);
+        if (validationErrors.isEmpty() == false) {
+            ValidationException validationException = new ValidationException();
+            validationException.addValidationErrors(validationErrors);
+            throw new IndexCreationException(indexName, validationException);
+        }
+    }
+
+    List<String> getIndexDateFormatValidationErrors(Map<String, String> mappings) {
+        List<String> validationErrors = new ArrayList<>();
+        // Check if the Json string contains illegal date format
+        Pattern regex = Pattern.compile(".+format\":\\[\"yyyy-MM-dd\"\\],\"type\":\"date\".+");
+        Matcher matcher = regex.matcher(mappings.values().toString());
+        if (matcher.find()) {
+            validationErrors.add("Invalid date field, please check again");
+        }
+        return validationErrors;
     }
 
     public void validateIndexSettings(String indexName, Settings settings) throws IndexCreationException {
