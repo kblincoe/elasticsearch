@@ -189,6 +189,7 @@ public class DateMathParser {
 
     private long parseDateTime(String value, DateTimeZone timeZone, boolean roundUpIfNoTime) {
         DateTimeFormatter parser = dateTimeFormatter.parser();
+        Boolean roundUp = roundUpIfNoTime;
         if (timeZone != null) {
             String format = dateTimeFormatter.format();
             // Non UTC time zones are not compatible with epoch formats
@@ -199,9 +200,13 @@ public class DateMathParser {
         }
         try {
             MutableDateTime date;
+            //Check for edge case that causes Long overflow
+            if (this.dateTimeFormatter.format().contains("epoch_millis") && this.isLong(value)){
+                roundUp = false;
+            }
             // We use 01/01/1970 as a base date so that things keep working with date
             // fields that are filled with times without dates
-            if (roundUpIfNoTime) {
+            if (roundUp) {
                 date = new MutableDateTime(1970, 1, 1, 23, 59, 59, 999, DateTimeZone.UTC);
             } else {
                 date = new MutableDateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeZone.UTC);
@@ -217,6 +222,27 @@ public class DateMathParser {
         } catch (IllegalArgumentException e) {
             throw new ElasticsearchParseException("failed to parse date field [{}] with format [{}]", e, value, dateTimeFormatter.format());
         }
+    }
+
+    //Will return false if string is longer that Long.MAX_VALUE
+    private boolean isLong(String string) {
+        if (string == null || string.isEmpty()) {
+            return false;
+        }
+        int i = 0;
+        if (string.charAt(0) == '-') {
+            if (string.length() > 1) {
+                i++;
+            } else {
+                return false;
+            }
+        }
+        for (; i < string.length(); i++) {
+            if (!Character.isDigit(string.charAt(i))) {
+                return false;
+            }
+        }
+        return true;
     }
 
 }
