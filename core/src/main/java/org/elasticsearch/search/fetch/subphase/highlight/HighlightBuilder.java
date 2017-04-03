@@ -88,6 +88,9 @@ public class HighlightBuilder extends AbstractHighlighterBuilder<HighlightBuilde
     /** the default closing tags when <tt>tag_schema = "styled"</tt>  */
     public static final String[] DEFAULT_STYLED_POST_TAGS = {"</em>"};
 
+    /** the parser which is used to read and record all inputs in one query */
+    private static final BiFunction<QueryParseContext, HighlightBuilder, HighlightBuilder> PARSER;
+    
     /**
      * a {@link FieldOptions} with default settings
      */
@@ -121,6 +124,22 @@ public class HighlightBuilder extends AbstractHighlighterBuilder<HighlightBuilde
         }
     }
 
+    /*
+   	 * Fixing Issue:21802
+   	 * Date:24 Mar, 2017
+   	 * This static blocks declare a highlight object parser before a highlight builder is initialized. Whenever 
+   	 * an search in highlighting is executed, it will read the commands to memory and use them construct a 
+   	 * highlight builder. 
+   	 * */
+       static {
+           ObjectParser<HighlightBuilder, QueryParseContext> parser = new ObjectParser<>("highlight");
+           parser.declareString(HighlightBuilder::tagsSchema, new ParseField("tags_schema"));
+           parser.declareString(HighlightBuilder::encoder, ENCODER_FIELD);
+           parser.declareNamedObjects(HighlightBuilder::fields, Field.PARSER, (HighlightBuilder hb) -> hb.useExplicitFieldOrder(true),
+                   FIELDS_FIELD);
+           PARSER = setupParser(parser);
+       }
+    
     @Override
     protected void doWriteTo(StreamOutput out) throws IOException {
         out.writeOptionalString(encoder);
@@ -255,16 +274,7 @@ public class HighlightBuilder extends AbstractHighlighterBuilder<HighlightBuilde
         builder.endObject();
         return builder;
     }
-
-    private static final BiFunction<QueryParseContext, HighlightBuilder, HighlightBuilder> PARSER;
-    static {
-        ObjectParser<HighlightBuilder, QueryParseContext> parser = new ObjectParser<>("highlight");
-        parser.declareString(HighlightBuilder::tagsSchema, new ParseField("tags_schema"));
-        parser.declareString(HighlightBuilder::encoder, ENCODER_FIELD);
-        parser.declareNamedObjects(HighlightBuilder::fields, Field.PARSER, (HighlightBuilder hb) -> hb.useExplicitFieldOrder(true),
-                FIELDS_FIELD);
-        PARSER = setupParser(parser);
-    }
+ 
     public static HighlightBuilder fromXContent(QueryParseContext c) {
         return PARSER.apply(c, new HighlightBuilder());
     }

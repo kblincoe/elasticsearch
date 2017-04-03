@@ -484,6 +484,9 @@ be highlighted regardless of whether the query matched specifically on them.
 The default behaviour is `true`, meaning that only fields that hold a query
 match will be highlighted.
 
+When assign a value to `require_field_match` parameter, both Boolean value 
+true|false and String value "true"|"false" can be accepted to execute a query.
+
 [source,js]
 --------------------------------------------------
 GET /_search
