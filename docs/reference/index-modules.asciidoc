@@ -79,6 +79,10 @@ Checking shards may take a lot of time on large indices.
     which uses https://en.wikipedia.org/wiki/DEFLATE[DEFLATE] for a higher
     compression ratio, at the expense of slower stored fields performance.
 
+    NOTE: `index.codec` cannot be set directly on an index. It must first be set on the node level. Then, the index
+    in question needs to be closed, updated, reopened and force merged. The same can be achieved when moving an
+    index between nodes by force merging the moved index.
+
 [[routing-partition-size]] `index.routing_partition_size`::
 
     The number of shards a custom <<mapping-routing-field,routing>> value can go to.
