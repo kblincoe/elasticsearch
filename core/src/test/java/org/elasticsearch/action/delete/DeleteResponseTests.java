@@ -40,18 +40,18 @@ public class DeleteResponseTests extends ESTestCase {
 
     public void testToXContent() {
         {
-            DeleteResponse response = new DeleteResponse(new ShardId("index", "index_uuid", 0), "type", "id", 3, 5, true);
+            DeleteResponse response = new DeleteResponse(new ShardId("index", "index_uuid", 0), "type", "id", 0L, 3, 5, true);
             String output = Strings.toString(response);
-            assertEquals("{\"found\":true,\"_index\":\"index\",\"_type\":\"type\",\"_id\":\"id\",\"_version\":5,\"result\":\"deleted\"," +
-                "\"_shards\":null,\"_seq_no\":3}", output);
+            assertEquals("{\"found\":true,\"_index\":\"index\",\"_type\":\"type\",\"_id\":\"id\",\"_took\":0,\"_version\":5," +
+                "\"result\":\"deleted\",\"_shards\":null,\"_seq_no\":3}", output);
         }
         {
-            DeleteResponse response = new DeleteResponse(new ShardId("index", "index_uuid", 0), "type", "id", -1, 7, true);
+            DeleteResponse response = new DeleteResponse(new ShardId("index", "index_uuid", 0), "type", "id", 0L, -1, 7, true);
             response.setForcedRefresh(true);
             response.setShardInfo(new ReplicationResponse.ShardInfo(10, 5));
             String output = Strings.toString(response);
-            assertEquals("{\"found\":true,\"_index\":\"index\",\"_type\":\"type\",\"_id\":\"id\",\"_version\":7,\"result\":\"deleted\"," +
-                "\"forced_refresh\":true,\"_shards\":{\"total\":10,\"successful\":5,\"failed\":0}}", output);
+            assertEquals("{\"found\":true,\"_index\":\"index\",\"_type\":\"type\",\"_id\":\"id\",\"_took\":0,\"_version\":7," +
+                "\"result\":\"deleted\",\"forced_refresh\":true,\"_shards\":{\"total\":10,\"successful\":5,\"failed\":0}}", output);
         }
     }
 
@@ -103,11 +103,11 @@ public class DeleteResponseTests extends ESTestCase {
 
         Tuple<ReplicationResponse.ShardInfo, ReplicationResponse.ShardInfo> shardInfos = RandomObjects.randomShardInfo(random());
 
-        DeleteResponse actual = new DeleteResponse(new ShardId(index, indexUUid, shardId), type, id, seqNo, version, found);
+        DeleteResponse actual = new DeleteResponse(new ShardId(index, indexUUid, shardId), type, id, 0L, seqNo, version, found);
         actual.setForcedRefresh(forcedRefresh);
         actual.setShardInfo(shardInfos.v1());
 
-        DeleteResponse expected = new DeleteResponse(new ShardId(index, INDEX_UUID_NA_VALUE, -1), type, id, seqNo, version, found);
+        DeleteResponse expected = new DeleteResponse(new ShardId(index, INDEX_UUID_NA_VALUE, -1), type, id, 0L, seqNo, version, found);
         expected.setForcedRefresh(forcedRefresh);
         expected.setShardInfo(shardInfos.v2());
 

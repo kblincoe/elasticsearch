@@ -291,7 +291,7 @@ public class AsyncBulkByScrollActionTests extends ESTestCase {
                 responses[i] = new BulkItemResponse(
                     i,
                     opType,
-                    new IndexResponse(shardId, "type", "id" + i, randomInt(20), randomInt(), createdResponse));
+                    new IndexResponse(shardId, "type", "id" + i, 0L, randomInt(20), randomInt(), createdResponse));
             }
             new DummyAsyncBulkByScrollAction().onBulkResponse(timeValueNanos(System.nanoTime()), new BulkResponse(responses, 0));
             assertEquals(versionConflicts, testTask.getStatus().getVersionConflicts());
@@ -794,12 +794,13 @@ public class AsyncBulkByScrollActionTests extends ESTestCase {
                                 shardId,
                                 index.type(),
                                 index.id(),
+                                0L,
                                 randomInt(20),
                                 randomIntBetween(0, Integer.MAX_VALUE),
                                 true);
                     } else if (item instanceof UpdateRequest) {
                         UpdateRequest update = (UpdateRequest) item;
-                        response = new UpdateResponse(shardId, update.type(), update.id(),
+                        response = new UpdateResponse(shardId, update.type(), update.id(), 0L,
                                 randomIntBetween(0, Integer.MAX_VALUE), Result.CREATED);
                     } else if (item instanceof DeleteRequest) {
                         DeleteRequest delete = (DeleteRequest) item;
@@ -808,6 +809,7 @@ public class AsyncBulkByScrollActionTests extends ESTestCase {
                                 shardId,
                                 delete.type(),
                                 delete.id(),
+                                0L,
                                 randomInt(20),
                                 randomIntBetween(0, Integer.MAX_VALUE),
                                 true);

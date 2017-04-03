@@ -43,7 +43,11 @@ public class DeleteResponse extends DocWriteResponse {
     }
 
     public DeleteResponse(ShardId shardId, String type, String id, long seqNo, long version, boolean found) {
-        super(shardId, type, id, seqNo, version, found ? Result.DELETED : Result.NOT_FOUND);
+        super(shardId, type, id, -1L, seqNo, version, found ? Result.DELETED : Result.NOT_FOUND);
+    }
+
+    public DeleteResponse(ShardId shardId, String type, String id, long tookInMillis, long seqNo, long version, boolean found) {
+        super(shardId, type, id, tookInMillis, seqNo, version, found ? Result.DELETED : Result.NOT_FOUND);
     }
 
     @Override
@@ -112,7 +116,7 @@ public class DeleteResponse extends DocWriteResponse {
 
         @Override
         public DeleteResponse build() {
-            DeleteResponse deleteResponse = new DeleteResponse(shardId, type, id, seqNo, version, found);
+            DeleteResponse deleteResponse = new DeleteResponse(shardId, type, id, tookInMillis, seqNo, version, found);
             deleteResponse.setForcedRefresh(forcedRefresh);
             if (shardInfo != null) {
                 deleteResponse.setShardInfo(shardInfo);

@@ -42,6 +42,7 @@ public class DocWriteResponseTests extends ESTestCase {
                         new ShardId("index", "uuid", 0),
                         "type",
                         "id",
+                        0L,
                         SequenceNumbersService.UNASSIGNED_SEQ_NO,
                         0,
                         Result.CREATED) {};
@@ -55,6 +56,7 @@ public class DocWriteResponseTests extends ESTestCase {
                         new ShardId("index", "uuid", 0),
                         "type",
                         "❤",
+                        0L,
                         SequenceNumbersService.UNASSIGNED_SEQ_NO,
                         0,
                         Result.CREATED) {};
@@ -68,6 +70,7 @@ public class DocWriteResponseTests extends ESTestCase {
                         new ShardId("index", "uuid", 0),
                         "type",
                         "a b",
+                        0L,
                         SequenceNumbersService.UNASSIGNED_SEQ_NO,
                         0,
                         Result.CREATED) {};
@@ -85,6 +88,7 @@ public class DocWriteResponseTests extends ESTestCase {
                 new ShardId("index", "uuid", 0),
                 "type",
                 "id",
+                0L,
                 SequenceNumbersService.UNASSIGNED_SEQ_NO,
                 0,
                 Result.CREATED) {

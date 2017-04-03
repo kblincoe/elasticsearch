@@ -69,6 +69,7 @@ import org.elasticsearch.transport.TransportService;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 import java.util.function.LongSupplier;
 
 /** Performs shard-level bulk (index, delete or update) operations */
@@ -135,8 +136,9 @@ public class TransportShardBulkAction extends TransportWriteAction<BulkShardRequ
         if (indexResult.hasFailure()) {
             return new BulkItemResultHolder(null, indexResult, bulkItemRequest);
         } else {
+            long tookInMillis = TimeUnit.NANOSECONDS.toMillis(indexResult.getTook());
             IndexResponse response = new IndexResponse(primary.shardId(), indexRequest.type(), indexRequest.id(),
-                    indexResult.getSeqNo(), indexResult.getVersion(), indexResult.isCreated());
+                tookInMillis, indexResult.getSeqNo(), indexResult.getVersion(), indexResult.isCreated());
             return new BulkItemResultHolder(response, indexResult, bulkItemRequest);
         }
     }
@@ -148,8 +150,9 @@ public class TransportShardBulkAction extends TransportWriteAction<BulkShardRequ
         if (deleteResult.hasFailure()) {
             return new BulkItemResultHolder(null, deleteResult, bulkItemRequest);
         } else {
+            long tookInMillis = TimeUnit.NANOSECONDS.toMillis(deleteResult.getTook());
             DeleteResponse response = new DeleteResponse(primary.shardId(), deleteRequest.type(), deleteRequest.id(),
-                    deleteResult.getSeqNo(), deleteResult.getVersion(), deleteResult.isFound());
+                tookInMillis, deleteResult.getSeqNo(), deleteResult.getVersion(), deleteResult.isFound());
             return new BulkItemResultHolder(response, deleteResult, bulkItemRequest);
         }
     }
@@ -197,7 +200,7 @@ public class TransportShardBulkAction extends TransportWriteAction<BulkShardRequ
                                 // Make sure to use request.indox() here, if you
                                 // use docWriteRequest.index() it will use the
                                 // concrete index instead of an alias if used!
-                                new BulkItemResponse.Failure(request.index(), docWriteRequest.type(), docWriteRequest.id(), failure)));
+                                new BulkItemResponse.Failure(request.index(), docWriteRequest.type(), docWriteRequest.id(), TimeUnit.NANOSECONDS.toMillis(operationResult.getTook()), failure)));
             }
             return originalLocation;
         }
@@ -299,12 +302,13 @@ public class TransportShardBulkAction extends TransportWriteAction<BulkShardRequ
                 switch (updateOperationResult.getOperationType()) {
                     case INDEX:
                         IndexRequest updateIndexRequest = translate.action();
+                        long indexTookInMillis = TimeUnit.NANOSECONDS.toMillis(updateOperationResult.getTook());
                         final IndexResponse indexResponse = new IndexResponse(primary.shardId(),
-                            updateIndexRequest.type(), updateIndexRequest.id(), updateOperationResult.getSeqNo(),
+                            updateIndexRequest.type(), updateIndexRequest.id(), indexTookInMillis, updateOperationResult.getSeqNo(),
                             updateOperationResult.getVersion(), ((Engine.IndexResult) updateOperationResult).isCreated());
                         BytesReference indexSourceAsBytes = updateIndexRequest.source();
                         updateResponse = new UpdateResponse(indexResponse.getShardInfo(),
-                            indexResponse.getShardId(), indexResponse.getType(), indexResponse.getId(), indexResponse.getSeqNo(),
+                            indexResponse.getShardId(), indexResponse.getType(), indexResponse.getId(), indexResponse.getTookInMillis(), indexResponse.getSeqNo(),
                             indexResponse.getVersion(), indexResponse.getResult());
                         if ((updateRequest.fetchSource() != null && updateRequest.fetchSource().fetchSource()) ||
                             (updateRequest.fields() != null && updateRequest.fields().length > 0)) {
@@ -318,11 +322,12 @@ public class TransportShardBulkAction extends TransportWriteAction<BulkShardRequ
                         break;
                     case DELETE:
                         DeleteRequest updateDeleteRequest = translate.action();
+                        long deleteTookInMillis = TimeUnit.NANOSECONDS.toMillis(updateOperationResult.getTook());
                         DeleteResponse deleteResponse = new DeleteResponse(primary.shardId(),
-                            updateDeleteRequest.type(), updateDeleteRequest.id(), updateOperationResult.getSeqNo(),
+                            updateDeleteRequest.type(), updateDeleteRequest.id(), deleteTookInMillis, updateOperationResult.getSeqNo(),
                             updateOperationResult.getVersion(), ((Engine.DeleteResult) updateOperationResult).isFound());
                         updateResponse = new UpdateResponse(deleteResponse.getShardInfo(),
-                            deleteResponse.getShardId(), deleteResponse.getType(), deleteResponse.getId(), deleteResponse.getSeqNo(),
+                            deleteResponse.getShardId(), deleteResponse.getType(), deleteResponse.getId(), deleteResponse.getTookInMillis(), deleteResponse.getSeqNo(),
                             deleteResponse.getVersion(), deleteResponse.getResult());
                         updateResponse.setGetResult(updateHelper.extractGetResult(updateRequest,
                             request.index(), deleteResponse.getVersion(), translate.updatedSourceAsMap(),

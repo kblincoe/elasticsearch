@@ -557,6 +557,7 @@ public abstract class ESIndexLevelReplicationTestCase extends IndexShardTestCase
             primary.shardId(),
             request.type(),
             request.id(),
+            indexResult.getTook(),
             indexResult.getSeqNo(),
             indexResult.getVersion(),
             indexResult.isCreated());

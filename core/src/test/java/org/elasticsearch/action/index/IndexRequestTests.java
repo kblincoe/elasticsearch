@@ -135,7 +135,7 @@ public class IndexRequestTests extends ESTestCase {
         String id = randomAsciiOfLengthBetween(3, 10);
         long version = randomLong();
         boolean created = randomBoolean();
-        IndexResponse indexResponse = new IndexResponse(shardId, type, id, SequenceNumbersService.UNASSIGNED_SEQ_NO, version, created);
+        IndexResponse indexResponse = new IndexResponse(shardId, type, id, 0L, SequenceNumbersService.UNASSIGNED_SEQ_NO, version, created);
         int total = randomIntBetween(1, 10);
         int successful = randomIntBetween(1, 10);
         ReplicationResponse.ShardInfo shardInfo = new ReplicationResponse.ShardInfo(total, successful);
@@ -153,7 +153,7 @@ public class IndexRequestTests extends ESTestCase {
         assertEquals(total, indexResponse.getShardInfo().getTotal());
         assertEquals(successful, indexResponse.getShardInfo().getSuccessful());
         assertEquals(forcedRefresh, indexResponse.forcedRefresh());
-        assertEquals("IndexResponse[index=" + shardId.getIndexName() + ",type=" + type + ",id="+ id +
+        assertEquals("IndexResponse[index=" + shardId.getIndexName() + ",type=" + type + ",id="+ id + ",took=" + 0L +
                 ",version=" + version + ",result=" + (created ? "created" : "updated") +
                 ",seqNo=" + SequenceNumbersService.UNASSIGNED_SEQ_NO +
                 ",shards={\"total\":" + total + ",\"successful\":" + successful + ",\"failed\":0}]",
