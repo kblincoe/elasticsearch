@@ -525,4 +525,15 @@ public class SearchScrollIT extends ESIntegTestCase {
         assertThat(map.get("succeeded"), is(succeed));
         assertThat(map.get("num_freed"), equalTo(numFreed));
     }
+    
+    public void testTimeoutLimitOnScroll() throws Exception {
+        
+         Throwable exception = expectThrows(IllegalArgumentException.class, () -> client().prepareSearch()
+                 .setQuery(matchAllQuery())
+                 .setSize(35)
+                 .setScroll(TimeValue.timeValueMinutes(6))
+                 .addSort("field", SortOrder.ASC)
+                 .execute().actionGet());
+          assertEquals("Keep Alive values are restricted to 5 minutes or less.",exception.getMessage());
+    }
 }
