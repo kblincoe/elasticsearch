@@ -910,7 +910,7 @@ public class ZenDiscovery extends AbstractLifecycleComponent implements Discover
                 return winner.getNode();
             } else {
                 // if we don't have enough master nodes, we bail, because there are not enough master to elect from
-                logger.trace("not enough master nodes [{}]", masterCandidates);
+                logger.trace("not enough master nodes [{}], expected at least [{}]", masterCandidates, electMaster.minimumMasterNodes());
                 return null;
             }
         } else {
