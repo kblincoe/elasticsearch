@@ -25,6 +25,7 @@ import org.elasticsearch.common.settings.Setting;
 import org.elasticsearch.common.settings.Setting.Property;
 import org.elasticsearch.index.AbstractIndexComponent;
 import org.elasticsearch.index.IndexSettings;
+import org.elasticsearch.index.mapper.KeywordFieldMapper;
 import org.elasticsearch.index.mapper.MappedFieldType;
 import org.elasticsearch.index.mapper.MapperService;
 import org.elasticsearch.index.shard.ShardId;
@@ -33,6 +34,7 @@ import org.elasticsearch.indices.fielddata.cache.IndicesFieldDataCache;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -108,7 +110,20 @@ public class IndexFieldDataService extends AbstractIndexComponent implements Clo
     @SuppressWarnings("unchecked")
     public <IFD extends IndexFieldData<?>> IFD getForField(MappedFieldType fieldType) {
         final String fieldName = fieldType.name();
-        IndexFieldData.Builder builder = fieldType.fielddataBuilder();
+        IndexFieldData.Builder builder;
+        try {
+            builder = fieldType.fielddataBuilder();
+        } catch (InvalidParameterException e) {
+            MappedFieldType keywordSubField = mapperService.subfieldType(fieldType.name(), KeywordFieldMapper.KeywordFieldType.class);
+            if (keywordSubField != null) {
+                throw new IllegalArgumentException("Fielddata is disabled on text fields by default. For sorting, aggregations, or "
+                    + "accessing text field values in scripts, either: 1. Use a subfield of keyword type instead e.g. ["
+                    + keywordSubField.name() + "]; or 2. Set fielddata=true on [" + fieldType.name() + "] in order to load fielddata in" +
+                    " memory by uninverting the inverted index. Note, however, that the latter option can use significant memory.");
+            } else {
+                throw new IllegalArgumentException(e.getMessage());
+            }
+        }
 
         IndexFieldDataCache cache;
         synchronized (this) {

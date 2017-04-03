@@ -664,6 +664,20 @@ public class MapperService extends AbstractIndexComponent implements Closeable {
     }
 
     /**
+     * Returns a {@link MappedFieldType} that is nested under the field for the give fullName.
+     *
+     * If multiple nested types have fields with the same full name, the first is returned.
+     */
+    public MappedFieldType subfieldType(String fullName, Class<? extends MappedFieldType> mappedFieldType) {
+        for (String fieldName : fieldTypes.simpleMatchToFullName(fullName + ".*")) {
+            if (mappedFieldType.isInstance(fieldTypes.get(fieldName))) {
+                return fieldTypes.get(fieldName);
+            }
+        }
+        return null;
+    }
+
+    /**
      * Returns all the fields that match the given pattern. If the pattern is prefixed with a type
      * then the fields will be returned with a type prefix.
      */

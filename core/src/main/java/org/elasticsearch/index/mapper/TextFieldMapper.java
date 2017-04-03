@@ -31,6 +31,7 @@ import org.elasticsearch.index.fielddata.IndexFieldData;
 import org.elasticsearch.index.fielddata.plain.PagedBytesIndexFieldData;
 
 import java.io.IOException;
+import java.security.InvalidParameterException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -285,7 +286,7 @@ public class TextFieldMapper extends FieldMapper {
         @Override
         public IndexFieldData.Builder fielddataBuilder() {
             if (fielddata == false) {
-                throw new IllegalArgumentException("Fielddata is disabled on text fields by default. Set fielddata=true on [" + name()
+                throw new InvalidParameterException("Fielddata is disabled on text fields by default. Set fielddata=true on [" + name()
                         + "] in order to load fielddata in memory by uninverting the inverted index. Note that this can however "
                         + "use significant memory.");
             }
