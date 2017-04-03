@@ -23,6 +23,7 @@ import org.apache.logging.log4j.message.ParameterizedMessage;
 import org.apache.logging.log4j.util.Supplier;
 import org.apache.lucene.util.IOUtils;
 import org.elasticsearch.ElasticsearchException;
+import org.elasticsearch.ElasticsearchParseException;
 import org.elasticsearch.ResourceNotFoundException;
 import org.elasticsearch.action.ActionListener;
 import org.elasticsearch.action.admin.cluster.storedscripts.DeleteStoredScriptRequest;
@@ -307,7 +308,12 @@ public class ScriptService extends AbstractComponent implements Closeable, Clust
                     // TODO: remove this try-catch completely, when all script engines have good exceptions!
                     throw good; // its already good
                 } catch (Exception exception) {
-                    throw new GeneralScriptException("Failed to compile " + type + " script [" + id + "] using lang [" + lang + "]", exception);
+                    //Checks exception message to see if exception was caused by a  malformed template and throw a ElasticsearchParseException as a result.
+                    if (exception.getLocalizedMessage().contains("Improperly closed variable in query-template")){
+                        throw new ElasticsearchParseException("Failed to compile " + type + " script [" + id + "] using lang [" + lang + "]", exception);
+                    }else {
+                        throw new GeneralScriptException("Failed to compile " + type + " script [" + id + "] using lang [" + lang + "]", exception);
+                    }
                 }
 
                 // Since the cache key is the script content itself we don't need to
