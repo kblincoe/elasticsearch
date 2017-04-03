@@ -307,9 +307,9 @@ public class RequestTests extends ESTestCase {
         if (randomBoolean()) {
             String timeout = randomTimeValue();
             updateRequest.timeout(timeout);
-            expectedParams.put("timeout", timeout);
+            expectedParams.put("shard_timeout", timeout);
         } else {
-            expectedParams.put("timeout", ReplicationRequest.DEFAULT_TIMEOUT.getStringRep());
+            expectedParams.put("shard_timeout", ReplicationRequest.DEFAULT_TIMEOUT.getStringRep());
         }
         if (randomBoolean()) {
             WriteRequest.RefreshPolicy refreshPolicy = randomFrom(WriteRequest.RefreshPolicy.values());
@@ -399,9 +399,9 @@ public class RequestTests extends ESTestCase {
         if (randomBoolean()) {
             String timeout = randomTimeValue();
             bulkRequest.timeout(timeout);
-            expectedParams.put("timeout", timeout);
+            expectedParams.put("shard_timeout", timeout);
         } else {
-            expectedParams.put("timeout", BulkShardRequest.DEFAULT_TIMEOUT.getStringRep());
+            expectedParams.put("shard_timeout", BulkShardRequest.DEFAULT_TIMEOUT.getStringRep());
         }
 
         if (randomBoolean()) {
@@ -698,9 +698,9 @@ public class RequestTests extends ESTestCase {
         if (randomBoolean()) {
             String timeout = randomTimeValue();
             request.timeout(timeout);
-            expectedParams.put("timeout", timeout);
+            expectedParams.put("shard_timeout", timeout);
         } else {
-            expectedParams.put("timeout", ReplicationRequest.DEFAULT_TIMEOUT.getStringRep());
+            expectedParams.put("shard_timeout", ReplicationRequest.DEFAULT_TIMEOUT.getStringRep());
         }
     }
 

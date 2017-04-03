@@ -18,7 +18,7 @@
   - do:
       catch: unavailable
       reindex:
-        timeout: 1s
+        shard_timeout: 1s
         wait_for_active_shards: 4
         body:
           source:

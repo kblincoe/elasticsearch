@@ -45,7 +45,7 @@ public class RestDeleteAction extends BaseRestHandler {
         DeleteRequest deleteRequest = new DeleteRequest(request.param("index"), request.param("type"), request.param("id"));
         deleteRequest.routing(request.param("routing"));
         deleteRequest.parent(request.param("parent"));
-        deleteRequest.timeout(request.paramAsTime("timeout", DeleteRequest.DEFAULT_TIMEOUT));
+        deleteRequest.timeout(request.paramAsTime("shard_timeout", DeleteRequest.DEFAULT_TIMEOUT));
         deleteRequest.setRefreshPolicy(request.param("refresh"));
         deleteRequest.version(RestActions.parseVersion(request));
         deleteRequest.versionType(VersionType.fromString(request.param("version_type"), deleteRequest.versionType()));

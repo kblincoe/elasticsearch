@@ -92,7 +92,7 @@ public abstract class AbstractBaseReindexRestHandler<
         assert request != null : "Request should not be null";
 
         request.setRefresh(restRequest.paramAsBoolean("refresh", request.isRefresh()));
-        request.setTimeout(restRequest.paramAsTime("timeout", request.getTimeout()));
+        request.setShardTimeout(restRequest.paramAsTime("shard_timeout", request.getShardTimeout()));
         request.setSlices(restRequest.paramAsInt("slices", request.getSlices()));
 
         String waitForActiveShards = restRequest.param("wait_for_active_shards");

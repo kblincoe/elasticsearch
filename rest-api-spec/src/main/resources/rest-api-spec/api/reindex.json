@@ -11,7 +11,7 @@
           "type" : "boolean",
           "description" : "Should the effected indexes be refreshed?"
         },
-        "timeout": {
+        "shard_timeout": {
           "type" : "time",
           "default": "1m",
           "description" : "Time each individual bulk request should wait for shards that are unavailable."

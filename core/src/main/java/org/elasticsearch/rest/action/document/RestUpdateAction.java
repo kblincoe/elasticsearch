@@ -53,7 +53,7 @@ public class RestUpdateAction extends BaseRestHandler {
         UpdateRequest updateRequest = new UpdateRequest(request.param("index"), request.param("type"), request.param("id"));
         updateRequest.routing(request.param("routing"));
         updateRequest.parent(request.param("parent"));
-        updateRequest.timeout(request.paramAsTime("timeout", updateRequest.timeout()));
+        updateRequest.timeout(request.paramAsTime("shard_timeout", updateRequest.timeout()));
         updateRequest.setRefreshPolicy(request.param("refresh"));
         String waitForActiveShards = request.param("wait_for_active_shards");
         if (waitForActiveShards != null) {
