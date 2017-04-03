@@ -77,7 +77,16 @@ public class GetIndexRequest extends ClusterInfoRequest<GetIndexRequest> {
                     return feature;
                 }
             }
-            throw new IllegalArgumentException("No endpoint or operation is available at [" + name + "]");
+            // check the request contains empty body
+            String noSpacesName = name.replaceAll("\\s+","");
+        	if(noSpacesName.contains("{}") || noSpacesName.contains("''"))
+        	{
+        		throw new IllegalArgumentException("The empty body is not allowed");
+        	}
+        	else
+        	{
+        		throw new IllegalArgumentException("No endpoint or operation is available at [" + name + "]");
+        	}
         }
 
         public static Feature fromId(byte id) {
