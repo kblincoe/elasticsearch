@@ -19,6 +19,7 @@
 
 package org.elasticsearch.snapshots;
 
+import com.carrotsearch.hppc.ObjectLookupContainer;
 import com.carrotsearch.hppc.cursors.ObjectCursor;
 import com.carrotsearch.hppc.cursors.ObjectObjectCursor;
 import org.apache.logging.log4j.message.ParameterizedMessage;
@@ -239,6 +240,7 @@ public class SnapshotsService extends AbstractLifecycleComponent implements Clus
                     throw new ConcurrentSnapshotExecutionException(repositoryName, snapshotName,
                         "cannot snapshot while a snapshot deletion is in-progress");
                 }
+
                 SnapshotsInProgress snapshots = currentState.custom(SnapshotsInProgress.TYPE);
                 if (snapshots == null || snapshots.entries().isEmpty()) {
                     // Store newSnapshot here to be processed in clusterStateProcessed
@@ -468,6 +470,7 @@ public class SnapshotsService extends AbstractLifecycleComponent implements Clus
         private void cleanupAfterError(Exception exception) {
             if(snapshotCreated) {
                 try {
+                    List<ShardId> shardIds = new ArrayList<>();
                     repositoriesService.repository(snapshot.snapshot().getRepository())
                                        .finalizeSnapshot(snapshot.snapshot().getSnapshotId(),
                                                          snapshot.indices(),
@@ -475,7 +478,8 @@ public class SnapshotsService extends AbstractLifecycleComponent implements Clus
                                                          ExceptionsHelper.detailedMessage(exception),
                                                          0,
                                                          Collections.emptyList(),
-                                                         snapshot.getRepositoryStateId());
+                                                         snapshot.getRepositoryStateId(),
+                                                         shardIds);
                 } catch (Exception inner) {
                     inner.addSuppressed(exception);
                     logger.warn((Supplier<?>) () -> new ParameterizedMessage("[{}] failed to close snapshot in repository", snapshot.snapshot()), inner);
@@ -897,8 +901,10 @@ public class SnapshotsService extends AbstractLifecycleComponent implements Clus
                     logger.trace("[{}] finalizing snapshot in repository, state: [{}], failure[{}]", snapshot, entry.state(), failure);
                     ArrayList<ShardSearchFailure> failures = new ArrayList<>();
                     ArrayList<SnapshotShardFailure> shardFailures = new ArrayList<>();
+                    ArrayList<ShardId> shardIds = new ArrayList<>();
                     for (ObjectObjectCursor<ShardId, ShardSnapshotStatus> shardStatus : entry.shards()) {
                         ShardId shardId = shardStatus.key;
+                        shardIds.add(shardId);
                         ShardSnapshotStatus status = shardStatus.value;
                         if (status.state().failed()) {
                             failures.add(new ShardSearchFailure(status.reason(), new SearchShardTarget(status.nodeId(), shardId)));
@@ -912,7 +918,8 @@ public class SnapshotsService extends AbstractLifecycleComponent implements Clus
                         failure,
                         entry.shards().size(),
                         Collections.unmodifiableList(shardFailures),
-                        entry.getRepositoryStateId());
+                        entry.getRepositoryStateId(),
+                        shardIds);
                     removeSnapshotFromClusterState(snapshot, snapshotInfo, null);
                 } catch (Exception e) {
                     logger.warn((Supplier<?>) () -> new ParameterizedMessage("[{}] failed to finalize snapshot", snapshot), e);

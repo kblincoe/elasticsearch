@@ -67,6 +67,7 @@ public final class SnapshotInfo implements Comparable<SnapshotInfo>, ToXContent,
     private static final String NAME = "name";
     private static final String TOTAL_SHARDS = "total_shards";
     private static final String SUCCESSFUL_SHARDS = "successful_shards";
+    private static final String SNAPSHOT_SIZE = "snapshot_size";
 
     private static final Version VERSION_INCOMPATIBLE_INTRODUCED = Version.V_5_2_0_UNRELEASED;
 
@@ -86,23 +87,32 @@ public final class SnapshotInfo implements Comparable<SnapshotInfo>, ToXContent,
 
     private final int successfulShards;
 
+    private long snapshotSize;
+
     @Nullable
     private final Version version;
 
     private final List<SnapshotShardFailure> shardFailures;
 
     public SnapshotInfo(SnapshotId snapshotId, List<String> indices, long startTime) {
-        this(snapshotId, indices, SnapshotState.IN_PROGRESS, null, Version.CURRENT, startTime, 0L, 0, 0, Collections.emptyList());
+        this(snapshotId, indices, SnapshotState.IN_PROGRESS, null, Version.CURRENT, startTime, 0L, 0, 0, Collections.emptyList(), 0);
     }
 
     public SnapshotInfo(SnapshotId snapshotId, List<String> indices, long startTime, String reason, long endTime,
                         int totalShards, List<SnapshotShardFailure> shardFailures) {
         this(snapshotId, indices, snapshotState(reason, shardFailures), reason, Version.CURRENT,
-             startTime, endTime, totalShards, totalShards - shardFailures.size(), shardFailures);
+             startTime, endTime, totalShards, totalShards - shardFailures.size(), shardFailures, 0);
+    }
+
+    public SnapshotInfo(SnapshotId snapshotId, List<String> indices, long startTime, String reason, long endTime,
+                        int totalShards, List<SnapshotShardFailure> shardFailures, long snapshotSize) {
+        this(snapshotId, indices, snapshotState(reason, shardFailures), reason, Version.CURRENT,
+            startTime, endTime, totalShards, totalShards - shardFailures.size(), shardFailures, snapshotSize);
     }
 
     private SnapshotInfo(SnapshotId snapshotId, List<String> indices, SnapshotState state, String reason, Version version,
-                         long startTime, long endTime, int totalShards, int successfulShards, List<SnapshotShardFailure> shardFailures) {
+                         long startTime, long endTime, int totalShards, int successfulShards,
+                         List<SnapshotShardFailure> shardFailures, long snapshotSize) {
         this.snapshotId = Objects.requireNonNull(snapshotId);
         this.indices = Objects.requireNonNull(indices);
         this.state = Objects.requireNonNull(state);
@@ -113,6 +123,7 @@ public final class SnapshotInfo implements Comparable<SnapshotInfo>, ToXContent,
         this.totalShards = totalShards;
         this.successfulShards = successfulShards;
         this.shardFailures = Objects.requireNonNull(shardFailures);
+        this.snapshotSize = snapshotSize;
     }
 
     /**
@@ -147,6 +158,7 @@ public final class SnapshotInfo implements Comparable<SnapshotInfo>, ToXContent,
         } else {
             version = in.readBoolean() ? Version.readVersion(in) : null;
         }
+        snapshotSize = in.readVLong();
     }
 
     /**
@@ -156,7 +168,7 @@ public final class SnapshotInfo implements Comparable<SnapshotInfo>, ToXContent,
     public static SnapshotInfo incompatible(SnapshotId snapshotId) {
         return new SnapshotInfo(snapshotId, Collections.emptyList(), SnapshotState.INCOMPATIBLE,
                                 "the snapshot is incompatible with the current version of Elasticsearch and its exact version is unknown",
-                                null, 0L, 0L, 0, 0, Collections.emptyList());
+                                null, 0L, 0L, 0, 0, Collections.emptyList(), 0);
     }
 
     /**
@@ -263,6 +275,13 @@ public final class SnapshotInfo implements Comparable<SnapshotInfo>, ToXContent,
     }
 
     /**
+     * Returns the size of the snapshot in bytes
+     *
+     * @return snapshot size
+     */
+    public long snapshotSize() { return snapshotSize; }
+
+    /**
      * Compares two snapshots by their start time
      *
      * @param o other snapshot
@@ -360,7 +379,9 @@ public final class SnapshotInfo implements Comparable<SnapshotInfo>, ToXContent,
         builder.field(TOTAL, totalShards);
         builder.field(FAILED, failedShards());
         builder.field(SUCCESSFUL, successfulShards);
+
         builder.endObject();
+        builder.field(SNAPSHOT_SIZE, snapshotSize);
         builder.endObject();
         return builder;
     }
@@ -391,6 +412,7 @@ public final class SnapshotInfo implements Comparable<SnapshotInfo>, ToXContent,
             builder.endObject();
         }
         builder.endArray();
+        builder.field(SNAPSHOT_SIZE, snapshotSize);
         builder.endObject();
         return builder;
     }
@@ -412,6 +434,8 @@ public final class SnapshotInfo implements Comparable<SnapshotInfo>, ToXContent,
         int totalShards = 0;
         int successfulShards = 0;
         List<SnapshotShardFailure> shardFailures = Collections.emptyList();
+        long snapshotSize = 0;
+
         if (parser.currentToken() == null) { // fresh parser? move to the first token
             parser.nextToken();
         }
@@ -445,6 +469,8 @@ public final class SnapshotInfo implements Comparable<SnapshotInfo>, ToXContent,
                                 successfulShards = parser.intValue();
                             } else if (VERSION_ID.equals(currentFieldName)) {
                                 version = Version.fromId(parser.intValue());
+                            } else if (SNAPSHOT_SIZE.equals(currentFieldName)) {
+                                snapshotSize = parser.longValue();
                             }
                         } else if (token == XContentParser.Token.START_ARRAY) {
                             if (INDICES.equals(currentFieldName)) {
@@ -486,7 +512,8 @@ public final class SnapshotInfo implements Comparable<SnapshotInfo>, ToXContent,
                                 endTime,
                                 totalShards,
                                 successfulShards,
-                                shardFailures);
+                                shardFailures,
+                                snapshotSize);
     }
 
     @Override
@@ -524,6 +551,7 @@ public final class SnapshotInfo implements Comparable<SnapshotInfo>, ToXContent,
                 out.writeBoolean(false);
             }
         }
+        out.writeVLong(snapshotSize);
     }
 
     private static SnapshotState snapshotState(final String reason, final List<SnapshotShardFailure> shardFailures) {

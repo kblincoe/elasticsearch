@@ -119,7 +119,7 @@ public interface Repository extends LifecycleComponent {
      * @return snapshot description
      */
     SnapshotInfo finalizeSnapshot(SnapshotId snapshotId, List<IndexId> indices, long startTime, String failure, int totalShards,
-                                  List<SnapshotShardFailure> shardFailures, long repositoryStateId);
+                                  List<SnapshotShardFailure> shardFailures, long repositoryStateId, List<ShardId> shardIds);
 
     /**
      * Deletes snapshot

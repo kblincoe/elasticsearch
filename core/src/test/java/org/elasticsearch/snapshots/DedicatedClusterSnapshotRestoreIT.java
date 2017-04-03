@@ -24,6 +24,7 @@ import com.carrotsearch.hppc.IntSet;
 
 import org.elasticsearch.action.ListenableActionFuture;
 import org.elasticsearch.action.admin.cluster.repositories.put.PutRepositoryResponse;
+import org.elasticsearch.action.admin.cluster.snapshots.create.CreateSnapshotRequestBuilder;
 import org.elasticsearch.action.admin.cluster.snapshots.create.CreateSnapshotResponse;
 import org.elasticsearch.action.admin.cluster.snapshots.delete.DeleteSnapshotResponse;
 import org.elasticsearch.action.admin.cluster.snapshots.get.GetSnapshotsResponse;
@@ -504,11 +505,28 @@ public class DedicatedClusterSnapshotRestoreIT extends AbstractSnapshotIntegTest
 
 
         logger.info("--> start snapshot with default settings without a closed index - should fail");
-        CreateSnapshotResponse createSnapshotResponse = client().admin().cluster().prepareCreateSnapshot("test-repo", "test-snap-1")
-                .setIndices("test-idx-all", "test-idx-none", "test-idx-some")
-                .setWaitForCompletion(true).execute().actionGet();
+        logger.info("\n\n################ GOT TILL HERE -1\n\n");
+
+//        CreateSnapshotResponse createSnapshotResponse = client().admin().cluster().prepareCreateSnapshot("test-repo", "test-snap-1")
+//                .setIndices("test-idx-all", "test-idx-none", "test-idx-some")
+//                .setWaitForCompletion(true).execute().actionGet();
+
+        CreateSnapshotResponse createSnapshotResponse = null;
+        CreateSnapshotRequestBuilder snapshotBuilder = client().admin().cluster().prepareCreateSnapshot("test-repo", "test-snap-1");
+
+        logger.info("\n\n################ GOT TILL HERE 0\n\n");
+
+        snapshotBuilder.setIndices("test-idx-all", "test-idx-none", "test-idx-some");
+
+        logger.info("\n\n################ GOT TILL HERE 1\n\n");
+
+        createSnapshotResponse = snapshotBuilder.setWaitForCompletion(true).execute().actionGet();
+
+        logger.info("\n\n################ GOT TILL HERE 2\n\n");
+
         assertThat(createSnapshotResponse.getSnapshotInfo().state(), equalTo(SnapshotState.FAILED));
         assertThat(createSnapshotResponse.getSnapshotInfo().reason(), containsString("Indices don't have primary shards"));
+
 
         if (randomBoolean()) {
             logger.info("checking snapshot completion using status");
