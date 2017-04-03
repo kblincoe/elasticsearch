@@ -176,6 +176,12 @@ final class DocumentParser {
 
     private static String[] splitAndValidatePath(String fullFieldPath) {
         String[] parts = fullFieldPath.split("\\.");
+        // the parts array will have 0 elements if the split was not successful,
+        // for example in this case if the string was a single dot '.'
+        if (parts.length == 0) {
+            throw new IllegalArgumentException(
+                    "unable to construct and validate a path from the filed name: [" + fullFieldPath + "]");
+        }
         for (String part : parts) {
             if (Strings.hasText(part) == false) {
                 throw new IllegalArgumentException(
