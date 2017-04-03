@@ -23,11 +23,20 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.codec.DecoderResult;
 import io.netty.handler.codec.http.DefaultFullHttpRequest;
 import io.netty.handler.codec.http.FullHttpRequest;
+
 import org.elasticsearch.common.util.concurrent.ThreadContext;
 import org.elasticsearch.http.netty4.pipelining.HttpPipelinedRequest;
 import org.elasticsearch.transport.netty4.Netty4Utils;
+
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @ChannelHandler.Sharable
 class Netty4HttpRequestHandler extends SimpleChannelInboundHandler<Object> {
@@ -56,6 +65,25 @@ class Netty4HttpRequestHandler extends SimpleChannelInboundHandler<Object> {
             request = (FullHttpRequest) msg;
         }
 
+        String contentString = request.content().toString(StandardCharsets.UTF_8);
+        List<String> allMatches = new ArrayList<String>();
+        //Find all stings in request.content() matching "u####" pattern
+        Matcher m = Pattern.compile("[\\\\][u][A-Za-z0-9][A-Za-z0-9][A-Za-z0-9][A-Za-z0-9]")
+                .matcher(contentString);
+        while (m.find()) {
+            allMatches.add(m.group());
+        }
+
+        //Check that all matches fall under valid UTF 8 to Unicode range.
+        for (String utf8 : allMatches) {            
+            if(!(utf8.matches("[\\\\][u][Cc][2-9A-Ba-b][8-9A-Ba-b][0-9A-Fa-f]")
+                    || utf8.matches("[\\\\][u][Dd][0][8][0-8]"))){
+                //Throws exception when invalid UTF 8 text is found.
+                request.setDecoderResult(DecoderResult.failure(
+                        new UnsupportedEncodingException("Invalid UTF-8 character "+utf8+" passed in request body")));
+            }
+        }
+        
         final FullHttpRequest copy =
                 new DefaultFullHttpRequest(
                         request.protocolVersion(),
