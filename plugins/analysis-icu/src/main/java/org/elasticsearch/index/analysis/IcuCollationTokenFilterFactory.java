@@ -131,19 +131,19 @@ public class IcuCollationTokenFilterFactory extends AbstractTokenFilterFactory {
             }
         }
 
-        Boolean caseLevel = settings.getAsBooleanLenientForPreEs6Indices(indexSettings.getIndexVersionCreated(), "caseLevel", null, deprecationLogger);
+        Boolean caseLevel = settings.getAsBooleanLenientForPreEs6Indices(indexSettings.getIndexVersionCreated(), "case_level", null, deprecationLogger);
         if (caseLevel != null) {
             rbc.setCaseLevel(caseLevel);
         }
 
-        String caseFirst = settings.get("caseFirst");
+        String caseFirst = settings.get("case_first");
         if (caseFirst != null) {
             if (caseFirst.equalsIgnoreCase("lower")) {
                 rbc.setLowerCaseFirst(true);
             } else if (caseFirst.equalsIgnoreCase("upper")) {
                 rbc.setUpperCaseFirst(true);
             } else {
-                throw new IllegalArgumentException("Invalid caseFirst: " + caseFirst);
+                throw new IllegalArgumentException("Invalid case_first: " + caseFirst);
             }
         }
 
@@ -152,13 +152,13 @@ public class IcuCollationTokenFilterFactory extends AbstractTokenFilterFactory {
             rbc.setNumericCollation(numeric);
         }
 
-        String variableTop = settings.get("variableTop");
+        String variableTop = settings.get("variable_top");
         if (variableTop != null) {
             rbc.setVariableTop(variableTop);
         }
 
         Boolean hiraganaQuaternaryMode = settings
-            .getAsBooleanLenientForPreEs6Indices(indexSettings.getIndexVersionCreated(), "hiraganaQuaternaryMode", null, deprecationLogger);
+            .getAsBooleanLenientForPreEs6Indices(indexSettings.getIndexVersionCreated(), "hiragana_quaternary_mode", null, deprecationLogger);
         if (hiraganaQuaternaryMode != null) {
             rbc.setHiraganaQuaternary(hiraganaQuaternaryMode);
         }
