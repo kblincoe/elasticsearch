@@ -427,7 +427,7 @@ class InstallPluginCommand extends EnvironmentAwareCommand {
                 "plugin directory [%s] already exists; if you need to update the plugin, uninstall it first using command 'remove %s'",
                 destination.toAbsolutePath(),
                 info.getName());
-            throw new UserException(ExitCodes.CONFIG, message);
+            throw new UserException(ExitCodes.PLUGIN_EXISTS, message);
         }
 
         terminal.println(VERBOSE, info.toString());
