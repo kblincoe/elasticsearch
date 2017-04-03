@@ -56,8 +56,8 @@ import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.json.JsonXContent;
 import org.elasticsearch.env.Environment;
 import org.elasticsearch.search.lookup.SearchLookup;
+import org.elasticsearch.watcher.DirectoryWatcher;
 import org.elasticsearch.watcher.FileChangesListener;
-import org.elasticsearch.watcher.FileWatcher;
 import org.elasticsearch.watcher.ResourceWatcherService;
 
 import java.io.Closeable;
@@ -119,8 +119,10 @@ public class ScriptService extends AbstractComponent implements Closeable, Clust
         Objects.requireNonNull(scriptContextRegistry);
         Objects.requireNonNull(scriptSettings);
         if (Strings.hasLength(settings.get(DISABLE_DYNAMIC_SCRIPTING_SETTING))) {
-            throw new IllegalArgumentException(DISABLE_DYNAMIC_SCRIPTING_SETTING + " is not a supported setting, replace with fine-grained script settings. \n" +
-                    "Dynamic scripts can be enabled for all languages and all operations by replacing `script.disable_dynamic: false` with `script.inline: true` and `script.stored: true` in elasticsearch.yml");
+            throw new IllegalArgumentException(DISABLE_DYNAMIC_SCRIPTING_SETTING + " is not a supported setting, replace with " +
+                "fine-grained script settings. \n" +
+                "Dynamic scripts can be enabled for all languages and all operations by replacing `script.disable_dynamic: false` with " +
+                "`script.inline: true` and `script.stored: true` in elasticsearch.yml");
         }
 
         this.scriptEngines = scriptEngineRegistry.getRegisteredLanguages().values();
@@ -157,15 +159,17 @@ public class ScriptService extends AbstractComponent implements Closeable, Clust
         if (logger.isTraceEnabled()) {
             logger.trace("Using scripts directory [{}] ", scriptsDirectory);
         }
-        FileWatcher fileWatcher = new FileWatcher(scriptsDirectory);
-        fileWatcher.addListener(new ScriptChangesListener());
+
+        DirectoryWatcher directoryWatcher = new DirectoryWatcher(scriptsDirectory);
+        directoryWatcher.addListener(new ScriptChangesListener());
+        directoryWatcher.init();
 
         if (SCRIPT_AUTO_RELOAD_ENABLED_SETTING.get(settings)) {
             // automatic reload is enabled - register scripts
-            resourceWatcherService.add(fileWatcher);
+            directoryWatcher.checkAndNotify();
         } else {
             // automatic reload is disable just load scripts once
-            fileWatcher.init();
+            directoryWatcher.stop();
         }
 
         this.lastInlineCompileTime = System.nanoTime();
@@ -307,7 +311,8 @@ public class ScriptService extends AbstractComponent implements Closeable, Clust
                     // TODO: remove this try-catch completely, when all script engines have good exceptions!
                     throw good; // its already good
                 } catch (Exception exception) {
-                    throw new GeneralScriptException("Failed to compile " + type + " script [" + id + "] using lang [" + lang + "]", exception);
+                    throw new GeneralScriptException("Failed to compile " + type + " script [" + id + "] using lang [" + lang + "]",
+                        exception);
                 }
 
                 // Since the cache key is the script content itself we don't need to
@@ -323,7 +328,7 @@ public class ScriptService extends AbstractComponent implements Closeable, Clust
     /**
      * Check whether there have been too many compilations within the last minute, throwing a circuit breaking exception if so.
      * This is a variant of the token bucket algorithm: https://en.wikipedia.org/wiki/Token_bucket
-     *
+     * <p>
      * It can be thought of as a bucket with water, every time the bucket is checked, water is added proportional to the amount of time that
      * elapsed since the last time it was checked. If there is enough water, some is removed and the request is allowed. If there is not
      * enough water the request is denied. Just like a normal bucket, if water is added that overflows the bucket, the extra water/capacity
@@ -347,8 +352,8 @@ public class ScriptService extends AbstractComponent implements Closeable, Clust
         } else {
             // Otherwise reject the request
             throw new CircuitBreakingException("[script] Too many dynamic script compilations within one minute, max: [" +
-                            totalCompilesPerMinute + "/min]; please use on-disk, indexed, or scripts with parameters instead; " +
-                            "this limit can be changed by the [" + SCRIPT_MAX_COMPILATIONS_PER_MINUTE.getKey() + "] setting");
+                totalCompilesPerMinute + "/min]; please use on-disk, indexed, or scripts with parameters instead; " +
+                "this limit can be changed by the [" + SCRIPT_MAX_COMPILATIONS_PER_MINUTE.getKey() + "] setting");
         }
     }
 
@@ -418,45 +423,45 @@ public class ScriptService extends AbstractComponent implements Closeable, Clust
         clusterService.submitStateUpdateTask("put-script-" + request.id(),
             new AckedClusterStateUpdateTask<PutStoredScriptResponse>(request, listener) {
 
-            @Override
-            protected PutStoredScriptResponse newResponse(boolean acknowledged) {
-                return new PutStoredScriptResponse(acknowledged);
-            }
+                @Override
+                protected PutStoredScriptResponse newResponse(boolean acknowledged) {
+                    return new PutStoredScriptResponse(acknowledged);
+                }
 
-            @Override
-            public ClusterState execute(ClusterState currentState) throws Exception {
-                ScriptMetaData smd = currentState.metaData().custom(ScriptMetaData.TYPE);
-                smd = ScriptMetaData.putStoredScript(smd, request.id(), source);
-                MetaData.Builder mdb = MetaData.builder(currentState.getMetaData()).putCustom(ScriptMetaData.TYPE, smd);
+                @Override
+                public ClusterState execute(ClusterState currentState) throws Exception {
+                    ScriptMetaData smd = currentState.metaData().custom(ScriptMetaData.TYPE);
+                    smd = ScriptMetaData.putStoredScript(smd, request.id(), source);
+                    MetaData.Builder mdb = MetaData.builder(currentState.getMetaData()).putCustom(ScriptMetaData.TYPE, smd);
 
-                return ClusterState.builder(currentState).metaData(mdb).build();
-            }
-        });
+                    return ClusterState.builder(currentState).metaData(mdb).build();
+                }
+            });
     }
 
     public void deleteStoredScript(ClusterService clusterService, DeleteStoredScriptRequest request,
                                    ActionListener<DeleteStoredScriptResponse> listener) {
         if (request.lang() != null && isLangSupported(request.lang()) == false) {
-            throw new IllegalArgumentException("unable to delete stored script with unsupported lang [" + request.lang() +"]");
+            throw new IllegalArgumentException("unable to delete stored script with unsupported lang [" + request.lang() + "]");
         }
 
         clusterService.submitStateUpdateTask("delete-script-" + request.id(),
             new AckedClusterStateUpdateTask<DeleteStoredScriptResponse>(request, listener) {
 
-            @Override
-            protected DeleteStoredScriptResponse newResponse(boolean acknowledged) {
-                return new DeleteStoredScriptResponse(acknowledged);
-            }
+                @Override
+                protected DeleteStoredScriptResponse newResponse(boolean acknowledged) {
+                    return new DeleteStoredScriptResponse(acknowledged);
+                }
 
-            @Override
-            public ClusterState execute(ClusterState currentState) throws Exception {
-                ScriptMetaData smd = currentState.metaData().custom(ScriptMetaData.TYPE);
-                smd = ScriptMetaData.deleteStoredScript(smd, request.id(), request.lang());
-                MetaData.Builder mdb = MetaData.builder(currentState.getMetaData()).putCustom(ScriptMetaData.TYPE, smd);
+                @Override
+                public ClusterState execute(ClusterState currentState) throws Exception {
+                    ScriptMetaData smd = currentState.metaData().custom(ScriptMetaData.TYPE);
+                    smd = ScriptMetaData.deleteStoredScript(smd, request.id(), request.lang());
+                    MetaData.Builder mdb = MetaData.builder(currentState.getMetaData()).putCustom(ScriptMetaData.TYPE, smd);
 
-                return ClusterState.builder(currentState).metaData(mdb).build();
-            }
-        });
+                    return ClusterState.builder(currentState).metaData(mdb).build();
+                }
+            });
     }
 
     public StoredScriptSource getStoredScript(ClusterState state, GetStoredScriptRequest request) {
@@ -495,7 +500,7 @@ public class ScriptService extends AbstractComponent implements Closeable, Clust
      * Binds provided parameters to a compiled script returning a
      * {@link SearchScript} ready for execution
      */
-    public SearchScript search(SearchLookup lookup, CompiledScript compiledScript,  Map<String, Object> params) {
+    public SearchScript search(SearchLookup lookup, CompiledScript compiledScript, Map<String, Object> params) {
         return getScriptEngineServiceForLang(compiledScript.lang()).search(compiledScript, lookup, params);
     }
 
@@ -589,7 +594,8 @@ public class ScriptService extends AbstractComponent implements Closeable, Clust
                             scriptMetrics.onCompilation();
                         }
                     } else {
-                        logger.warn("skipping compile of script file [{}] as all scripted operations are disabled for file scripts", file.toAbsolutePath());
+                        logger.warn("skipping compile of script file [{}] as all scripted operations are disabled for file scripts", file
+                            .toAbsolutePath());
                     }
                 } catch (ScriptException e) {
                     try (XContentBuilder builder = JsonXContent.contentBuilder()) {
@@ -601,12 +607,12 @@ public class ScriptService extends AbstractComponent implements Closeable, Clust
                     } catch (IOException ioe) {
                         ioe.addSuppressed(e);
                         logger.warn((Supplier<?>) () -> new ParameterizedMessage(
-                                "failed to log an appropriate warning after failing to load/compile script [{}]", scriptNameExt.v1()), ioe);
+                            "failed to log an appropriate warning after failing to load/compile script [{}]", scriptNameExt.v1()), ioe);
                     }
                     /* Log at the whole exception at the debug level as well just in case the stack trace is important. That way you can
                      * turn on the stack trace if you need it. */
                     logger.debug((Supplier<?>) () -> new ParameterizedMessage("failed to load/compile script [{}]. full exception:",
-                            scriptNameExt.v1()), e);
+                        scriptNameExt.v1()), e);
                 } catch (Exception e) {
                     logger.warn((Supplier<?>) () -> new ParameterizedMessage("failed to load/compile script [{}]", scriptNameExt.v1()), e);
                 }
@@ -652,7 +658,7 @@ public class ScriptService extends AbstractComponent implements Closeable, Clust
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
 
-            CacheKey cacheKey = (CacheKey)o;
+            CacheKey cacheKey = (CacheKey) o;
 
             if (lang != null ? !lang.equals(cacheKey.lang) : cacheKey.lang != null) return false;
             if (!idOrCode.equals(cacheKey.idOrCode)) return false;

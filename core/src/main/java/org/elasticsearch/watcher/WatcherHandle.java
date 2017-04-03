@@ -19,6 +19,8 @@
 
 package org.elasticsearch.watcher;
 
+import org.elasticsearch.common.unit.TimeValue;
+
 public class WatcherHandle<W extends ResourceWatcher> {
 
     private final ResourceWatcherService.ResourceMonitor monitor;
@@ -33,8 +35,8 @@ public class WatcherHandle<W extends ResourceWatcher> {
         return watcher;
     }
 
-    public ResourceWatcherService.Frequency frequency() {
-        return monitor.frequency;
+    public TimeValue frequency() {
+        return monitor.interval;
     }
 
     public void stop() {
