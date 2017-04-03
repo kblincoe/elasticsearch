@@ -135,7 +135,9 @@ public class TransportShardBulkAction extends TransportWriteAction<BulkShardRequ
         if (indexResult.hasFailure()) {
             return new BulkItemResultHolder(null, indexResult, bulkItemRequest);
         } else {
-            IndexResponse response = new IndexResponse(primary.shardId(), indexRequest.type(), indexRequest.id(),
+            String requestToReturn = indexRequest.source().utf8ToString();
+            requestToReturn = requestToReturn.replace("\n", "").replace("\"", "");  //Cleans up the request string so the request is more user readable
+            IndexResponse response = new IndexResponse(primary.shardId(), indexRequest.type(), indexRequest.id(), requestToReturn ,
                     indexResult.getSeqNo(), indexResult.getVersion(), indexResult.isCreated());
             return new BulkItemResultHolder(response, indexResult, bulkItemRequest);
         }
