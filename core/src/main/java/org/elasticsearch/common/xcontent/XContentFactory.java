@@ -44,14 +44,22 @@ public class XContentFactory {
 
     /**
      * Returns a content builder using JSON format ({@link org.elasticsearch.common.xcontent.XContentType#JSON}.
+     *
+     * @deprecated JSON will be deprecated as of ES 2.4 and will be removed in ES 5.0 because YAML will be used instead. Replaced by
+     *      {@link #yamlBuilder()}
      */
+    @Deprecated
     public static XContentBuilder jsonBuilder() throws IOException {
         return contentBuilder(XContentType.JSON);
     }
 
     /**
      * Constructs a new json builder that will output the result into the provided output stream.
+     *
+     * @deprecated JSON will be deprecated as of ES 2.4 and will be removed in ES 5.0 because YAML will be used instead. Replaced by
+     *      {@link #yamlBuilder(OutputStream)}
      */
+    @Deprecated
     public static XContentBuilder jsonBuilder(OutputStream os) throws IOException {
         return new XContentBuilder(JsonXContent.jsonXContent, os);
     }
