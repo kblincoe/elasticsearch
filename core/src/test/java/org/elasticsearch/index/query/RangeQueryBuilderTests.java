@@ -23,9 +23,11 @@ import com.carrotsearch.randomizedtesting.generators.RandomPicks;
 
 import org.apache.lucene.document.IntPoint;
 import org.apache.lucene.document.LongPoint;
+import org.apache.lucene.search.ConstantScoreQuery;
 import org.apache.lucene.search.IndexOrDocValuesQuery;
 import org.apache.lucene.search.PointRangeQuery;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TermRangeQuery;
 import org.elasticsearch.ElasticsearchParseException;
 import org.elasticsearch.common.ParsingException;
@@ -42,6 +44,7 @@ import org.joda.time.DateTimeZone;
 import org.joda.time.chrono.ISOChronology;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -122,19 +125,27 @@ public class RangeQueryBuilderTests extends AbstractQueryTestCase<RangeQueryBuil
 
     @Override
     protected void doAssertLuceneQuery(RangeQueryBuilder queryBuilder, Query query, SearchContext context) throws IOException {
-        if (getCurrentTypes().length == 0 ||
-            (queryBuilder.fieldName().equals(DATE_FIELD_NAME) == false
-                && queryBuilder.fieldName().equals(INT_FIELD_NAME) == false
-                && queryBuilder.fieldName().equals(DATE_RANGE_FIELD_NAME) == false
-                && queryBuilder.fieldName().equals(INT_RANGE_FIELD_NAME) == false)) {
+        String fieldPattern = queryBuilder.fieldName();
+        Collection<String> fields = context.getQueryShardContext().simpleMatchToIndexNames(fieldPattern);
+        if (queryBuilder.to() == null && queryBuilder.from() == null) {
+            assertThat(query, instanceOf(ConstantScoreQuery.class));
+            ConstantScoreQuery constantScoreQuery = (ConstantScoreQuery) query;
+            assertThat(constantScoreQuery.getQuery(), instanceOf(TermQuery.class));
+            TermQuery termQuery = (TermQuery) constantScoreQuery.getQuery();
+            assertEquals(fields.iterator().next(), termQuery.getTerm().text());
+        } else if (getCurrentTypes().length == 0 ||
+            (fieldPattern.equals(DATE_FIELD_NAME) == false
+                && fieldPattern.equals(INT_FIELD_NAME) == false
+                && fieldPattern.equals(DATE_RANGE_FIELD_NAME) == false
+                && fieldPattern.equals(INT_RANGE_FIELD_NAME) == false)) {
             assertThat(query, instanceOf(TermRangeQuery.class));
             TermRangeQuery termRangeQuery = (TermRangeQuery) query;
-            assertThat(termRangeQuery.getField(), equalTo(queryBuilder.fieldName()));
+            assertThat(termRangeQuery.getField(), equalTo(fieldPattern));
             assertThat(termRangeQuery.getLowerTerm(), equalTo(BytesRefs.toBytesRef(queryBuilder.from())));
             assertThat(termRangeQuery.getUpperTerm(), equalTo(BytesRefs.toBytesRef(queryBuilder.to())));
             assertThat(termRangeQuery.includesLower(), equalTo(queryBuilder.includeLower()));
             assertThat(termRangeQuery.includesUpper(), equalTo(queryBuilder.includeUpper()));
-        } else if (queryBuilder.fieldName().equals(DATE_FIELD_NAME)) {
+        } else if (fieldPattern.equals(DATE_FIELD_NAME)) {
             assertThat(query, instanceOf(IndexOrDocValuesQuery.class));
             query = ((IndexOrDocValuesQuery) query).getIndexQuery();
             assertThat(query, instanceOf(PointRangeQuery.class));
@@ -179,7 +190,7 @@ public class RangeQueryBuilderTests extends AbstractQueryTestCase<RangeQueryBuil
                 }
             }
             assertEquals(LongPoint.newRangeQuery(DATE_FIELD_NAME, minLong, maxLong), query);
-        } else if (queryBuilder.fieldName().equals(INT_FIELD_NAME)) {
+        } else if (fieldPattern.equals(INT_FIELD_NAME)) {
             assertThat(query, instanceOf(IndexOrDocValuesQuery.class));
             query = ((IndexOrDocValuesQuery) query).getIndexQuery();
             assertThat(query, instanceOf(PointRangeQuery.class));
@@ -202,8 +213,8 @@ public class RangeQueryBuilderTests extends AbstractQueryTestCase<RangeQueryBuil
                     maxInt--;
                 }
             }
-        } else if (queryBuilder.fieldName().equals(DATE_RANGE_FIELD_NAME)
-            || queryBuilder.fieldName().equals(INT_RANGE_FIELD_NAME)) {
+        } else if (fieldPattern.equals(DATE_RANGE_FIELD_NAME)
+            || fieldPattern.equals(INT_RANGE_FIELD_NAME)) {
             // todo can't check RangeFieldQuery because its currently package private (this will change)
         } else {
             throw new UnsupportedOperationException();
@@ -486,7 +497,7 @@ public class RangeQueryBuilderTests extends AbstractQueryTestCase<RangeQueryBuil
         assertThat(rewritten, sameInstance(query));
     }
 
-    public void testRewriteOpenBoundsToSame() throws IOException {
+    public void testRewriteOpenBoundsToExists() throws IOException {
         String fieldName = randomAsciiOfLengthBetween(1, 20);
         RangeQueryBuilder query = new RangeQueryBuilder(fieldName) {
             @Override
@@ -496,7 +507,7 @@ public class RangeQueryBuilderTests extends AbstractQueryTestCase<RangeQueryBuil
         };
         QueryShardContext queryShardContext = createShardContext();
         QueryBuilder rewritten = query.rewrite(queryShardContext);
-        assertThat(rewritten, sameInstance(query));
+        assertThat(rewritten, instanceOf(ExistsQueryBuilder.class));
     }
 
     public void testParseFailsWithMultipleFields() throws IOException {
