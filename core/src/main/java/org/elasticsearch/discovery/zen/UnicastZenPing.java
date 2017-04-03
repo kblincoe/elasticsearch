@@ -122,7 +122,8 @@ public class UnicastZenPing extends AbstractComponent implements ZenPing {
 
     // used as a node id prefix for configured unicast host nodes/address
     private static final String UNICAST_NODE_PREFIX = "#zen_unicast_";
-
+   
+    private static final String  HOST_PORT_ARGUMENT_SEPERATOR = ":";
     private final Map<Integer, PingingRound> activePingingRounds = newConcurrentMap();
 
     // a list of temporal responses a node will return for a request (holds responses from other nodes)
@@ -219,6 +220,16 @@ public class UnicastZenPing extends AbstractComponent implements ZenPing {
         final Iterator<String> it = hosts.iterator();
         for (final Future<TransportAddress[]> future : futures) {
             final String hostname = it.next();
+            if (hostname != null && hostname.contains(HOST_PORT_ARGUMENT_SEPERATOR)){
+                //Regex expression checks for a dash between port numbers
+				//ie  discovery.zen.ping.unicast.hosts : ["127.0.0.1:9200-9300"] 
+                if (hostname.matches(".*:\\d+\\s?-\\s?\\d+.*")){
+                    logger.warn("discovery.zen.ping.unicast.hosts setting does not support port ranges");
+                    logger.warn("Usage: [\"host:port\"] or [\"host:port\", \"host\", \"host:port\"]");
+                    throw new IllegalArgumentException("discovery.zen.ping.unicast.hosts " + hostname + 
+                                                       " contains a port range, which is unsupported");
+                }
+            }
             if (!future.isCancelled()) {
                 assert future.isDone();
                 try {
