@@ -28,7 +28,7 @@ import java.io.IOException;
 import java.io.StringReader;
 
 public class CJKFilterFactoryTests extends ESTokenStreamTestCase {
-    private static final String RESOURCE = "/org/elasticsearch/index/analysis/cjk_analysis.json";
+    private static final String RESOURCE = "/org/elasticsearch/index/analysis/cjk_analysis.yaml";
 
     public void testDefault() throws IOException {
         ESTestCase.TestAnalysis analysis = AnalysisTestsHelper.createTestAnalysisFromClassPath(createTempDir(), RESOURCE);

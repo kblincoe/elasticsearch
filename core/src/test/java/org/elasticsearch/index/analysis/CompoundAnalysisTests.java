@@ -51,7 +51,7 @@ import static org.hamcrest.Matchers.instanceOf;
 
 public class CompoundAnalysisTests extends ESTestCase {
     public void testDefaultsCompoundAnalysis() throws Exception {
-        Settings settings = getJsonSettings();
+        Settings settings = getYamlSettings();
         IndexSettings idxSettings = IndexSettingsModule.newIndexSettings("test", settings);
         AnalysisModule analysisModule = new AnalysisModule(new Environment(settings), singletonList(new AnalysisPlugin() {
             @Override
@@ -64,13 +64,11 @@ public class CompoundAnalysisTests extends ESTestCase {
     }
 
     public void testDictionaryDecompounder() throws Exception {
-        Settings[] settingsArr = new Settings[]{getJsonSettings(), getYamlSettings()};
-        for (Settings settings : settingsArr) {
-            List<String> terms = analyze(settings, "decompoundingAnalyzer", "donaudampfschiff spargelcremesuppe");
-            MatcherAssert.assertThat(terms.size(), equalTo(8));
-            MatcherAssert.assertThat(terms,
-                    hasItems("donau", "dampf", "schiff", "donaudampfschiff", "spargel", "creme", "suppe", "spargelcremesuppe"));
-        }
+        Settings settings = getYamlSettings();
+        List<String> terms = analyze(settings, "decompoundingAnalyzer", "donaudampfschiff spargelcremesuppe");
+        MatcherAssert.assertThat(terms.size(), equalTo(8));
+        MatcherAssert.assertThat(terms,
+                hasItems("donau", "dampf", "schiff", "donaudampfschiff", "spargel", "creme", "suppe", "spargelcremesuppe"));
     }
 
     private List<String> analyze(Settings settings, String analyzerName, String text) throws IOException {
@@ -97,15 +95,6 @@ public class CompoundAnalysisTests extends ESTestCase {
             terms.add(tokText);
         }
         return terms;
-    }
-
-    private Settings getJsonSettings() throws IOException {
-        String json = "/org/elasticsearch/index/analysis/test1.json";
-        return Settings.builder()
-                .loadFromStream(json, getClass().getResourceAsStream(json))
-                .put(IndexMetaData.SETTING_VERSION_CREATED, Version.CURRENT)
-                .put(Environment.PATH_HOME_SETTING.getKey(), createTempDir().toString())
-                .build();
     }
 
     private Settings getYamlSettings() throws IOException {
