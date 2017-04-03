@@ -218,10 +218,10 @@ public class GeoPointFieldMapper extends FieldMapper implements ArrayValueMapper
 
         if (ignoreMalformed.value() == false) {
             if (point.lat() > 90.0 || point.lat() < -90.0) {
-                throw new IllegalArgumentException("illegal latitude value [" + point.lat() + "] for " + name());
+                throw new IllegalArgumentException("The malformed geo-point field: " + name() +"[" + point.lat() + "," + point.lon() + "]" +" has an illegal latitude value.");
             }
             if (point.lon() > 180.0 || point.lon() < -180) {
-                throw new IllegalArgumentException("illegal longitude value [" + point.lon() + "] for " + name());
+                throw new IllegalArgumentException("The malformed geo-point field: " + name() +"[" + point.lat() + "," + point.lon() + "]" +" has an illegal longitude value.");
             }
         } else {
             GeoUtils.normalizePoint(point);

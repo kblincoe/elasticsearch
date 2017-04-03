@@ -111,8 +111,13 @@ public final class GeoPoint {
     }
 
     public GeoPoint resetFromGeoHash(String geohash) {
-        final long hash = mortonEncode(geohash);
-        return this.reset(GeoPointField.decodeLatitude(hash), GeoPointField.decodeLongitude(hash));
+        int fullstop = geohash.indexOf('.');
+        if (fullstop != -1) {
+            throw new IllegalArgumentException("The malformed geo-point field with value of [" + geohash + "] contains a non-valid geohash character '.'.");
+        } else {
+            final long hash = mortonEncode(geohash);
+            return this.reset(GeoPointField.decodeLatitude(hash), GeoPointField.decodeLongitude(hash));
+        }
     }
 
     public GeoPoint resetFromGeoHash(long geohashLong) {
