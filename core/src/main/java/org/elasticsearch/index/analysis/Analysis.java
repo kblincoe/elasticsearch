@@ -158,6 +158,7 @@ public class Analysis {
         namedStopWords.put("_swedish_", SwedishAnalyzer.getDefaultStopSet());
         namedStopWords.put("_thai_", ThaiAnalyzer.getDefaultStopSet());
         namedStopWords.put("_turkish_", TurkishAnalyzer.getDefaultStopSet());
+        namedStopWords.put("_smartcn_", SmartcnAnalyzer.getDefaultStopSet());
 
         NAMED_STOP_WORDS = unmodifiableMap(namedStopWords);
     }
