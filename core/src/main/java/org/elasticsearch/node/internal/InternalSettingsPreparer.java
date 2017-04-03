@@ -46,7 +46,7 @@ import static org.elasticsearch.common.Strings.cleanPath;
  */
 public class InternalSettingsPreparer {
 
-    private static final String[] ALLOWED_SUFFIXES = {".yml", ".yaml", ".json"};
+    private static final String[] ALLOWED_SUFFIXES = {".yaml", ".json"};
     static final String PROPERTY_DEFAULTS_PREFIX = "default.";
     static final Predicate<String> PROPERTY_DEFAULTS_PREDICATE = key -> key.startsWith(PROPERTY_DEFAULTS_PREFIX);
 
@@ -101,7 +101,8 @@ public class InternalSettingsPreparer {
                     try {
                         output.loadFromPath(path);
                     } catch (IOException e) {
-                        throw new SettingsException("Failed to load settings from " + path.toString(), e);
+                        throw new SettingsException("Failed to load settings from " + path.toString() + ". Allowed " +
+                            "settings suffixes: .yaml and .json (.yml is no longer supported in ES5.0).", e);
                     }
                 }
                 settingsFileFound = true;

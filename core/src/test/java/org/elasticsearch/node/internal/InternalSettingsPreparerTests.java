@@ -137,7 +137,8 @@ public class InternalSettingsPreparerTests extends ESTestCase {
                 .put(baseEnvSettings)
                 .build(), null);
         } catch (SettingsException e) {
-            assertEquals("Failed to load settings from [elasticsearch.yml]", e.getMessage());
+            assertEquals("Failed to load settings from [elasticsearch.yml]" + ". Allowed " +
+                "settings suffixes: .yaml and .json (.yml is no longer supported in ES5.0).", e.getMessage());
         }
     }
 
