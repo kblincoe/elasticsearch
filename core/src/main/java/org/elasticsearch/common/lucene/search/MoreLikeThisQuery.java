@@ -45,12 +45,13 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+// Able to locate the query's class but unable to track down the cause of the issue
+// This maybe dependent on other classes
 public class MoreLikeThisQuery extends Query {
 
     public static final String DEFAULT_MINIMUM_SHOULD_MATCH = "30%";
 
     private TFIDFSimilarity similarity;
-
     private String[] likeText;
     private Fields[] likeFields;
     private String[] unlikeText;
@@ -75,7 +76,7 @@ public class MoreLikeThisQuery extends Query {
     }
 
     public MoreLikeThisQuery(String likeText, String[] moreLikeFields, Analyzer analyzer) {
-        this.likeText = new String[]{likeText};
+        this.likeText = new String[]{likeText}; // problem is related to the like parameter of the MoreLikeThisQuery
         this.moreLikeFields = moreLikeFields;
         this.analyzer = analyzer;
     }
@@ -86,7 +87,7 @@ public class MoreLikeThisQuery extends Query {
                 maxDocFreq, maxDocFreqPct, maxQueryTerms, maxWordLen, minDocFreq, minTermFrequency, minWordLen,
                 Arrays.hashCode(moreLikeFields), minimumShouldMatch, stopWords);
     }
-
+	// Cannot identify why an issue arised only with child documents
     @Override
     public boolean equals(Object obj) {
         if (sameClassAs(obj) == false) {
