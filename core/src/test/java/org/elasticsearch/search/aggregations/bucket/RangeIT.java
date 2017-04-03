@@ -914,6 +914,111 @@ public class RangeIT extends ESIntegTestCase {
     }
 
     /**
+     * Make sure the `missing` option is supported for range aggregations
+     */
+    public void testMissingAggregation() throws Exception {
+        createIndex("idx_missing");
+        List<IndexRequestBuilder> builders = new ArrayList<>();
+        int numDocs = randomIntBetween(10, 20);
+        int numDocsMissing = randomIntBetween(1, numDocs - 1);
+        for(int i = 0; i < numDocs; i++) {
+            builders.add(client().prepareIndex("idx_missing", "type", "" + i).setSource(jsonBuilder()
+                .startObject()
+                .field(SINGLE_VALUED_FIELD_NAME, i)
+                .endObject()));
+        }
+        for(int i = numDocs; i < numDocs + numDocsMissing; i++){
+            builders.add(client().prepareIndex("idx_missing", "type", ""+i).setSource(jsonBuilder()
+                .startObject()
+                .field("tag", "tag1")
+                .endObject()));
+        }
+
+        indexRandom(true, builders);
+        ensureSearchable();
+
+        SearchResponse response = client().prepareSearch("idx_missing")
+            .addAggregation(range("range")
+                .field(SINGLE_VALUED_FIELD_NAME)
+                .addUnboundedTo(3)
+                .addRange(3, 6)
+                .addUnboundedFrom(6))
+            .addAggregation(range("range_missing")
+                .missing(5)
+                .field(SINGLE_VALUED_FIELD_NAME)
+                .addUnboundedTo(3)
+                .addRange(3, 6)
+                .addUnboundedFrom(6))
+            .execute().actionGet();
+
+        assertSearchResponse(response);
+
+
+        Range range = response.getAggregations().get("range");
+        assertThat(range, notNullValue());
+        assertThat(range.getName(), equalTo("range"));
+        List<? extends Bucket> buckets = range.getBuckets();
+        assertThat(range.getBuckets().size(), equalTo(3));
+
+        Range range_missing = response.getAggregations().get("range_missing");
+        assertThat(range_missing, notNullValue());
+        assertThat(range_missing.getName(), equalTo("range_missing"));
+        List<? extends Bucket> buckets_missing = range_missing.getBuckets();
+        assertThat(range_missing.getBuckets().size(), equalTo(3));
+
+        Range.Bucket bucket = buckets.get(0);
+        assertThat(bucket, notNullValue());
+        assertThat(bucket.getKey(), equalTo("*-3.0"));
+        assertThat(((Number) bucket.getFrom()).doubleValue(), equalTo(Double.NEGATIVE_INFINITY));
+        assertThat(((Number) bucket.getTo()).doubleValue(), equalTo(3.0));
+        assertThat(bucket.getFromAsString(), nullValue());
+        assertThat(bucket.getToAsString(), equalTo("3.0"));
+
+        Range.Bucket bucket_missing = buckets_missing.get(0);
+        assertThat(bucket_missing, notNullValue());
+        assertThat(bucket_missing.getKey(), equalTo("*-3.0"));
+        assertThat(((Number) bucket_missing.getFrom()).doubleValue(), equalTo(Double.NEGATIVE_INFINITY));
+        assertThat(((Number) bucket_missing.getTo()).doubleValue(), equalTo(3.0));
+        assertThat(bucket_missing.getFromAsString(), nullValue());
+        assertThat(bucket_missing.getToAsString(), equalTo("3.0"));
+        assertThat(bucket_missing.getDocCount(), equalTo(bucket.getDocCount()));
+
+        bucket = buckets.get(1);
+        assertThat(bucket, notNullValue());
+        assertThat(bucket.getKey(), equalTo("3.0-6.0"));
+        assertThat(((Number) bucket.getFrom()).doubleValue(), equalTo(3.0));
+        assertThat(((Number) bucket.getTo()).doubleValue(), equalTo(6.0));
+        assertThat(bucket.getFromAsString(), equalTo("3.0"));
+        assertThat(bucket.getToAsString(), equalTo("6.0"));
+
+        bucket_missing = buckets_missing.get(1);
+        assertThat(bucket_missing, notNullValue());
+        assertThat(bucket_missing.getKey(), equalTo("3.0-6.0"));
+        assertThat(((Number) bucket_missing.getFrom()).doubleValue(), equalTo(3.0));
+        assertThat(((Number) bucket_missing.getTo()).doubleValue(), equalTo(6.0));
+        assertThat(bucket_missing.getFromAsString(), equalTo("3.0"));
+        assertThat(bucket_missing.getToAsString(), equalTo("6.0"));
+        assertThat(bucket_missing.getDocCount(), equalTo(bucket.getDocCount() + numDocsMissing));
+
+        bucket = buckets.get(2);
+        assertThat(bucket, notNullValue());
+        assertThat(bucket.getKey(), equalTo("6.0-*"));
+        assertThat(((Number) bucket.getFrom()).doubleValue(), equalTo(6.0));
+        assertThat(((Number) bucket.getTo()).doubleValue(), equalTo(Double.POSITIVE_INFINITY));
+        assertThat(bucket.getFromAsString(), equalTo("6.0"));
+        assertThat(bucket.getToAsString(), nullValue());
+
+        bucket_missing = buckets_missing.get(2);
+        assertThat(bucket_missing, notNullValue());
+        assertThat(bucket_missing.getKey(), equalTo("6.0-*"));
+        assertThat(((Number) bucket_missing.getFrom()).doubleValue(), equalTo(6.0));
+        assertThat(((Number) bucket_missing.getTo()).doubleValue(), equalTo(Double.POSITIVE_INFINITY));
+        assertThat(bucket_missing.getFromAsString(), equalTo("6.0"));
+        assertThat(bucket_missing.getToAsString(), nullValue());
+        assertThat(bucket_missing.getDocCount(), equalTo(bucket.getDocCount()));
+    }
+
+    /**
      * Make sure that a request using a script does not get cached and a request
      * not using a script does get cached.
      */
@@ -955,4 +1060,5 @@ public class RangeIT extends ESIntegTestCase {
         assertThat(client().admin().indices().prepareStats("cache_test_idx").setRequestCache(true).get().getTotal().getRequestCache()
                 .getMissCount(), equalTo(1L));
     }
+
 }
