@@ -19,6 +19,7 @@
 
 package org.elasticsearch.search.scroll;
 
+import org.elasticsearch.action.ActionRequestValidationException;
 import org.elasticsearch.action.search.ClearScrollResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
@@ -112,6 +113,16 @@ public class SearchScrollIT extends ESIntegTestCase {
         } finally {
             clearScroll(searchResponse.getScrollId());
         }
+    }
+
+    public void testScrollSearchSize() throws Exception {
+        Throwable exception = expectThrows(ActionRequestValidationException.class, () -> client().prepareSearch()
+                .setQuery(matchAllQuery())
+                .setSize(0)
+                .setScroll(TimeValue.timeValueMinutes(2))
+                .execute().actionGet());
+
+        assertEquals("Validation Failed: 1: Error: size is 0! Cannot use scroll search;", exception.getMessage());
     }
 
     public void testSimpleScrollQueryThenFetchSmallSizeUnevenDistribution() throws Exception {
