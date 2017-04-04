@@ -32,6 +32,7 @@ import java.util.Map;
 public final class ConfigurationUtils {
 
     public static final String TAG_KEY = "tag";
+    public static final String SCRIPT_KEY = "script";
 
     private ConfigurationUtils() {
     }
@@ -256,6 +257,12 @@ public final class ConfigurationUtils {
                 for (Map.Entry<String, Map<String, Object>> entry : processorConfigWithKey.entrySet()) {
                     try {
                         processors.add(readProcessor(processorFactories, entry.getKey(), entry.getValue()));
+                    } catch (ClassCastException ce) {
+                        if(entry.getKey().equals(SCRIPT_KEY)){
+                            exception = newConfigurationException(null, null, entry.getKey(), "Must be an Object. Short form scripting not allowed");
+                        } else {
+                            exception = ExceptionsHelper.useOrSuppress(exception, ce);
+                        }
                     } catch (Exception e) {
                         exception = ExceptionsHelper.useOrSuppress(exception, e);
                     }

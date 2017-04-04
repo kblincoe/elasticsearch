@@ -1661,6 +1661,16 @@ numeric fields `field_a` and `field_b` multiplied by the parameter param_c:
 }
 --------------------------------------------------
 
+note: processors expect properties to be defined as objects, so short form scripting like in the following
+example would not be allowed
+
+[source,js]
+--------------------------------------------------
+{
+  "script":  "ctx.foo='bar'" //not allowed
+}
+--------------------------------------------------
+
 
 [[set-processor]]
 === Set Processor
