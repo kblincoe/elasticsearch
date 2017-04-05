@@ -111,6 +111,9 @@ public class MultiMatchQueryBuilderTests extends AbstractQueryTestCase<MultiMatc
         if (randomBoolean()) {
             query.fuzzyRewrite(getRandomRewriteMethod());
         }
+        if(randomBoolean()) {
+            query.fuzzyTranspositions(randomBoolean());
+        }
         if (randomBoolean()) {
             query.useDisMax(randomBoolean());
         }
@@ -231,19 +234,20 @@ public class MultiMatchQueryBuilderTests extends AbstractQueryTestCase<MultiMatc
     public void testFromJson() throws IOException {
         String json =
                 "{\n" +
-                "  \"multi_match\" : {\n" +
-                "    \"query\" : \"quick brown fox\",\n" +
-                "    \"fields\" : [ \"title^1.0\", \"title.original^1.0\", \"title.shingles^1.0\" ],\n" +
-                "    \"type\" : \"most_fields\",\n" +
-                "    \"operator\" : \"OR\",\n" +
-                "    \"slop\" : 0,\n" +
-                "    \"prefix_length\" : 0,\n" +
-                "    \"max_expansions\" : 50,\n" +
-                "    \"lenient\" : false,\n" +
-                "    \"zero_terms_query\" : \"NONE\",\n" +
-                "    \"boost\" : 1.0\n" +
-                "  }\n" +
-                "}";
+                        "  \"multi_match\" : {\n" +
+                        "    \"query\" : \"quick brown fox\",\n" +
+                        "    \"fields\" : [ \"title^1.0\", \"title.original^1.0\", \"title.shingles^1.0\" ],\n" +
+                        "    \"type\" : \"most_fields\",\n" +
+                        "    \"operator\" : \"OR\",\n" +
+                        "    \"slop\" : 0,\n" +
+                        "    \"prefix_length\" : 0,\n" +
+                        "    \"max_expansions\" : 50,\n" +
+                        "    \"fuzzy_transpositions\" : true,\n" +
+                        "    \"lenient\" : false,\n" +
+                        "    \"zero_terms_query\" : \"NONE\",\n" +
+                        "    \"boost\" : 1.0\n" +
+                        "  }\n" +
+                        "}";
 
         MultiMatchQueryBuilder parsed = (MultiMatchQueryBuilder) parseQuery(json);
         checkGeneratedJson(json, parsed);
@@ -259,17 +263,17 @@ public class MultiMatchQueryBuilderTests extends AbstractQueryTestCase<MultiMatc
      */
     public void testFuzzinessNotAllowedTypes() throws IOException {
         String[] notAllowedTypes = new String[]{ Type.CROSS_FIELDS.parseField().getPreferredName(),
-            Type.PHRASE.parseField().getPreferredName(), Type.PHRASE_PREFIX.parseField().getPreferredName()};
+                Type.PHRASE.parseField().getPreferredName(), Type.PHRASE_PREFIX.parseField().getPreferredName()};
         for (String type : notAllowedTypes) {
             String json =
                     "{\n" +
-                    "  \"multi_match\" : {\n" +
-                    "    \"query\" : \"quick brown fox\",\n" +
-                    "    \"fields\" : [ \"title^1.0\", \"title.original^1.0\", \"title.shingles^1.0\" ],\n" +
-                    "    \"type\" : \"" + type + "\",\n" +
-                    "    \"fuzziness\" : 1" +
-                    "  }\n" +
-                    "}";
+                            "  \"multi_match\" : {\n" +
+                            "    \"query\" : \"quick brown fox\",\n" +
+                            "    \"fields\" : [ \"title^1.0\", \"title.original^1.0\", \"title.shingles^1.0\" ],\n" +
+                            "    \"type\" : \"" + type + "\",\n" +
+                            "    \"fuzziness\" : 1" +
+                            "  }\n" +
+                            "}";
 
             ParsingException e = expectThrows(ParsingException.class, () -> parseQuery(json));
             assertEquals("Fuzziness not allowed for type [" + type +"]", e.getMessage());
@@ -279,11 +283,11 @@ public class MultiMatchQueryBuilderTests extends AbstractQueryTestCase<MultiMatc
     public void testQueryParameterArrayException() throws IOException {
         String json =
                 "{\n" +
-                "  \"multi_match\" : {\n" +
-                "    \"query\" : [\"quick\", \"brown\", \"fox\"]\n" +
-                "    \"fields\" : [ \"title^1.0\", \"title.original^1.0\", \"title.shingles^1.0\" ]" +
-                "  }\n" +
-                "}";
+                        "  \"multi_match\" : {\n" +
+                        "    \"query\" : [\"quick\", \"brown\", \"fox\"]\n" +
+                        "    \"fields\" : [ \"title^1.0\", \"title.original^1.0\", \"title.shingles^1.0\" ]" +
+                        "  }\n" +
+                        "}";
 
         ParsingException e = expectThrows(ParsingException.class, () -> parseQuery(json));
         assertEquals("[multi_match] unknown token [START_ARRAY] after [query]", e.getMessage());

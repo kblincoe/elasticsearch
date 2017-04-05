@@ -64,6 +64,8 @@ import java.util.Base64;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.hamcrest.Matchers.equalTo;
 
@@ -101,6 +103,30 @@ public class TermVectorsUnitTests extends ESTestCase {
         inResponse.readFrom(esBuffer);
         assertTrue(inResponse.isExists());
 
+    }
+
+    private void testSourceAsString() throws IOException {
+        TermVectorsResponse testResponse = new TermVectorsResponse("c", "d", "e");
+        String vectorString = testResponse.sourceAsString();
+        String expectedString = "{\"_index\":\"c\",\"_type\":\"d\",\"_id\":\"e\",\"_version\":0,\"found\":false,\"took\":0}";
+        assertTrue(expectedString == vectorString);
+    }
+
+    private void testSourceAsMap() throws IOException {
+        TermVectorsResponse testResponse = new TermVectorsResponse("c", "d", "e");
+        Map<String,Object> expectedMap = new HashMap<String,Object>(){{
+            put("took", "0");
+            put("found", "false");
+            put("_index", "c");
+            put("_type", "d");
+            put("_id", "e");
+            put("_version", "0");
+        }};
+        Map<String,Object> actualMap = testResponse.sourceAsMap();
+        expectedMap.forEach((key, value) -> {
+            assertTrue(actualMap.containsKey(key));
+            assertTrue(actualMap.containsValue(value));
+        });
     }
 
     private void writeEmptyTermVector(TermVectorsResponse outResponse) throws IOException {

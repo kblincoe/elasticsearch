@@ -19,6 +19,7 @@
 
 package org.elasticsearch.cluster.routing.allocation.command;
 
+import org.apache.logging.log4j.Logger;
 import org.elasticsearch.cluster.node.DiscoveryNode;
 import org.elasticsearch.cluster.routing.RecoverySource;
 import org.elasticsearch.cluster.routing.RecoverySource.StoreRecoverySource;
@@ -31,6 +32,7 @@ import org.elasticsearch.cluster.routing.allocation.RoutingAllocation;
 import org.elasticsearch.cluster.routing.allocation.decider.Decision;
 import org.elasticsearch.common.ParseField;
 import org.elasticsearch.common.io.stream.StreamInput;
+import org.elasticsearch.common.logging.Loggers;
 import org.elasticsearch.common.xcontent.ObjectParser;
 import org.elasticsearch.common.xcontent.XContentParser;
 import org.elasticsearch.index.IndexNotFoundException;
@@ -47,6 +49,7 @@ public class AllocateEmptyPrimaryAllocationCommand extends BasePrimaryAllocation
     public static final String NAME = "allocate_empty_primary";
     public static final ParseField COMMAND_NAME_FIELD = new ParseField(NAME);
 
+    private static final Logger logger = Loggers.getLogger(AllocateEmptyPrimaryAllocationCommand.class);
     private static final ObjectParser<Builder, Void> EMPTY_PRIMARY_PARSER = BasePrimaryAllocationCommand.createAllocatePrimaryParser(NAME);
 
     /**
@@ -128,7 +131,7 @@ public class AllocateEmptyPrimaryAllocationCommand extends BasePrimaryAllocation
         }
 
         initializeUnassignedShard(allocation, routingNodes, routingNode, shardRouting, unassignedInfoToUpdate, StoreRecoverySource.EMPTY_STORE_INSTANCE);
-
+        logger.warn("Allocating an empty primary for [" + index + "][" + shardId + "], this has erased all data in that shard.");
         return new RerouteExplanation(this, allocation.decision(Decision.YES, name() + " (allocation command)", "ignore deciders"));
     }
 }

@@ -40,7 +40,13 @@ public class GetAliasesRequest extends MasterNodeReadRequest<GetAliasesRequest> 
     }
 
     public GetAliasesRequest(String alias) {
-        this.aliases = new String[]{alias};
+        // String alias can contain multiple aliases separated by commas. 
+        // Alias names cannot contain ',', thus, don't need to worry about splitting the alias name. 
+        if (alias.contains(",")) {
+            this.aliases = alias.split(",");
+        } else { 
+            this.aliases = new String[]{alias};
+        }
     }
 
     public GetAliasesRequest() {

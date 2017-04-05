@@ -46,6 +46,10 @@ import java.util.List;
 
 public class RestActions {
 
+    public static boolean hasBodyContent(RestRequest request) {
+        return request.hasContentOrSourceParam();
+    }
+
     public static long parseVersion(RestRequest request) {
         if (request.hasParam("version")) {
             return request.paramAsLong("version", Versions.MATCH_ANY);

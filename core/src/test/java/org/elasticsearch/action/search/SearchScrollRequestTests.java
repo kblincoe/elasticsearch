@@ -22,6 +22,7 @@ package org.elasticsearch.action.search;
 import org.elasticsearch.common.io.stream.BytesStreamOutput;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.unit.TimeValue;
+import org.elasticsearch.search.Scroll;
 import org.elasticsearch.search.internal.InternalScrollSearchRequest;
 import org.elasticsearch.test.ESTestCase;
 
@@ -66,7 +67,16 @@ public class SearchScrollRequestTests extends ESTestCase {
 
     public static SearchScrollRequest createSearchScrollRequest() {
         SearchScrollRequest searchScrollRequest = new SearchScrollRequest(randomAsciiOfLengthBetween(3, 10));
-        searchScrollRequest.scroll(randomPositiveTimeValue());
+
+        TimeValue randomKeepAlive;
+        String randomTimeValue;
+        //Ensure that random time value does not conflict with 5 minute keepAlive limitation
+        do {
+            randomTimeValue = randomPositiveTimeValue();
+            randomKeepAlive = TimeValue.parseTimeValue(randomTimeValue, null, "OTHER:Randomizing Scroll Timeout Value");
+        } while (randomKeepAlive.seconds() > Scroll.TIMEOUT_SECONDS);
+
+        searchScrollRequest.scroll(randomTimeValue);
         return searchScrollRequest;
     }
 

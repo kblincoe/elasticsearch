@@ -19,6 +19,7 @@
 
 package org.elasticsearch.action.search;
 
+import org.elasticsearch.ElasticsearchParseException;
 import org.elasticsearch.action.support.IndicesOptions;
 import org.elasticsearch.common.ParseField;
 import org.elasticsearch.common.Strings;
@@ -144,6 +145,15 @@ public class MultiSearchRequestTests extends ESTestCase {
         assertThat(request.requests().get(2).types()[1], equalTo("type1"));
         assertThat(request.requests().get(2).routing(), equalTo("123"));
     }
+
+     public void testMalformedRequest() throws Exception {
+         try {
+             MultiSearchRequest request = parseMultiSearchRequest("/org/elasticsearch/action/search/simple-msearch5.json");
+             fail("Exception not thrown on invalid multisearch request body");
+         } catch (ElasticsearchParseException e) {
+             assertThat(e.getMessage(), equalTo("Malformed request; requires ending marker"));
+         }
+     }
 
     public void testResponseErrorToXContent() throws IOException {
         MultiSearchResponse response = new MultiSearchResponse(

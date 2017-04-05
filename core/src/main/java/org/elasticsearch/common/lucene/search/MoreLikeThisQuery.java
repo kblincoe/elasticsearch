@@ -45,12 +45,13 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+// Able to locate the query's class but unable to track down the cause of the issue
+// This maybe dependent on other classes
 public class MoreLikeThisQuery extends Query {
 
     public static final String DEFAULT_MINIMUM_SHOULD_MATCH = "30%";
 
     private TFIDFSimilarity similarity;
-
     private String[] likeText;
     private Fields[] likeFields;
     private String[] unlikeText;
@@ -63,6 +64,7 @@ public class MoreLikeThisQuery extends Query {
     private Set<?> stopWords = XMoreLikeThis.DEFAULT_STOP_WORDS;
     private int minDocFreq = XMoreLikeThis.DEFAULT_MIN_DOC_FREQ;
     private int maxDocFreq = XMoreLikeThis.DEFAULT_MAX_DOC_FREQ;
+    private int maxDocFreqPct = XMoreLikeThis.DEFAULT_MAX_DOC_FREQ_PCT;
     private int minWordLen = XMoreLikeThis.DEFAULT_MIN_WORD_LENGTH;
     private int maxWordLen = XMoreLikeThis.DEFAULT_MAX_WORD_LENGTH;
     private boolean boostTerms = XMoreLikeThis.DEFAULT_BOOST;
@@ -74,7 +76,7 @@ public class MoreLikeThisQuery extends Query {
     }
 
     public MoreLikeThisQuery(String likeText, String[] moreLikeFields, Analyzer analyzer) {
-        this.likeText = new String[]{likeText};
+        this.likeText = new String[]{likeText}; // problem is related to the like parameter of the MoreLikeThisQuery
         this.moreLikeFields = moreLikeFields;
         this.analyzer = analyzer;
     }
@@ -82,10 +84,10 @@ public class MoreLikeThisQuery extends Query {
     @Override
     public int hashCode() {
         return Objects.hash(classHash(), boostTerms, boostTermsFactor, Arrays.hashCode(likeText),
-                maxDocFreq, maxQueryTerms, maxWordLen, minDocFreq, minTermFrequency, minWordLen,
+                maxDocFreq, maxDocFreqPct, maxQueryTerms, maxWordLen, minDocFreq, minTermFrequency, minWordLen,
                 Arrays.hashCode(moreLikeFields), minimumShouldMatch, stopWords);
     }
-
+	// Cannot identify why an issue arised only with child documents
     @Override
     public boolean equals(Object obj) {
         if (sameClassAs(obj) == false) {
@@ -101,6 +103,8 @@ public class MoreLikeThisQuery extends Query {
         if (!(Arrays.equals(likeText, other.likeText)))
             return false;
         if (maxDocFreq != other.maxDocFreq)
+            return false;
+        if (maxDocFreqPct != other.maxDocFreqPct)
             return false;
         if (maxQueryTerms != other.maxQueryTerms)
             return false;
@@ -142,6 +146,7 @@ public class MoreLikeThisQuery extends Query {
         mlt.setMinTermFreq(minTermFrequency);
         mlt.setMinDocFreq(minDocFreq);
         mlt.setMaxDocFreq(maxDocFreq);
+        mlt.setMaxDocFreqPct(maxDocFreqPct);
         mlt.setMaxQueryTerms(maxQueryTerms);
         mlt.setMinWordLen(minWordLen);
         mlt.setMaxWordLen(maxWordLen);
@@ -337,6 +342,13 @@ public class MoreLikeThisQuery extends Query {
 
     public void setMaxDocFreq(int maxDocFreq) {
         this.maxDocFreq = maxDocFreq;
+    }
+
+    public int getMaxDocFreqPct(){
+        return maxDocFreqPct;
+    }
+    public void setMaxDocFreqPct(int maxDocFreqPct){
+        this.maxDocFreqPct = maxDocFreqPct;
     }
 
     public int getMinWordLen() {

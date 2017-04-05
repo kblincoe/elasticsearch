@@ -124,7 +124,13 @@ public class ContextIndexSearcher extends IndexSearcher implements Releasable {
                 profile.stopAndRecordTime();
                 profiler.pollLastElement();
             }
-            return new ProfileWeight(query, weight, profile);
+
+            if (weight instanceof ProfileWeight) {
+                // Prevent double wrapping of weights when a query contains an inner query
+                return weight;
+            } else {
+                return new ProfileWeight(query, weight, profile);
+            }
         } else {
             // needs to be 'super', not 'in' in order to use aggregated DFS
             return super.createWeight(query, needsScores);

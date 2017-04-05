@@ -202,7 +202,12 @@ public final class RestClientBuilder {
 
         HttpAsyncClientBuilder httpClientBuilder = HttpAsyncClientBuilder.create().setDefaultRequestConfig(requestConfigBuilder.build())
                 //default settings for connection pooling may be too constraining
-                .setMaxConnPerRoute(DEFAULT_MAX_CONN_PER_ROUTE).setMaxConnTotal(DEFAULT_MAX_CONN_TOTAL);
+                .setMaxConnPerRoute(DEFAULT_MAX_CONN_PER_ROUTE)
+                .setMaxConnTotal(DEFAULT_MAX_CONN_TOTAL)
+            	// use system properties when it is validate 
+                //this help on reindex as it uses the RestClient internally 
+                //and can be easily configured to trust different certificates
+                .useSystemProperties();
         if (httpClientConfigCallback != null) {
             httpClientBuilder = httpClientConfigCallback.customizeHttpClient(httpClientBuilder);
         }

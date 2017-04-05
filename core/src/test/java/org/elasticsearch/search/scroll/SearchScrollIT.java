@@ -19,6 +19,7 @@
 
 package org.elasticsearch.search.scroll;
 
+import org.elasticsearch.action.ActionRequestValidationException;
 import org.elasticsearch.action.search.ClearScrollResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
@@ -113,6 +114,16 @@ public class SearchScrollIT extends ESIntegTestCase {
         } finally {
             clearScroll(searchResponse.getScrollId());
         }
+    }
+
+    public void testScrollSearchSize() throws Exception {
+        Throwable exception = expectThrows(ActionRequestValidationException.class, () -> client().prepareSearch()
+                .setQuery(matchAllQuery())
+                .setSize(0)
+                .setScroll(TimeValue.timeValueMinutes(2))
+                .execute().actionGet());
+
+        assertEquals("Validation Failed: 1: Error: size is 0! Cannot use scroll search;", exception.getMessage());
     }
 
     public void testSimpleScrollQueryThenFetchSmallSizeUnevenDistribution() throws Exception {
@@ -527,6 +538,7 @@ public class SearchScrollIT extends ESIntegTestCase {
         assertThat(map.get("num_freed"), equalTo(numFreed));
     }
 
+
     //A simple test to check if the Exception are being shown properly
     public void testScrollwithFrom() throws Exception {
         Throwable e = expectThrows( ActionRequestValidationException.class, () ->
@@ -537,6 +549,16 @@ public class SearchScrollIT extends ESIntegTestCase {
                 .execute().actionGet());
 
         assertEquals("Validation Failed: 1: Error: from function is not working, please remove any from parameters;", e.getMessage());
-
+    } 
+    
+    public void testTimeoutLimitOnScroll() throws Exception {
+        
+         Throwable exception = expectThrows(IllegalArgumentException.class, () -> client().prepareSearch()
+                 .setQuery(matchAllQuery())
+                 .setSize(35)
+                 .setScroll(TimeValue.timeValueMinutes(6))
+                 .addSort("field", SortOrder.ASC)
+                 .execute().actionGet());
+          assertEquals("Keep Alive values are restricted to 5 minutes or less.",exception.getMessage());
     }
 }

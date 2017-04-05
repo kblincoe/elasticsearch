@@ -68,6 +68,15 @@ via the <<multi-fields>> parameter.
 [float]
 === Settings to prevent mappings explosion
 
+What is a mapping explosion: Mapping explosion occurs when the difference between keys and values are ignored when 
+indexing documents.
+
+Problem: It will cause Elasticsearch to run out of memory and have difficulty to recover.
+
+Elasticsearch should not be used as a generic key-value store. For small data it seems fine to let the users
+create custom forms and do search without using a rigid schema. The problem shows when the mapping starts to grow, 
+there will be memory cost to every field and they will be distributed between all nodes.
+
 The following settings allow you to limit the number of field mappings that
 can be created manually or dynamically, in order to prevent bad documents from
 causing a mapping explosion:

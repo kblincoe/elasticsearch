@@ -18,11 +18,15 @@
  */
 package org.elasticsearch.search.aggregations.bucket;
 
+import org.elasticsearch.action.index.IndexRequestBuilder;
 import org.elasticsearch.cluster.health.ClusterHealthStatus;
+
+import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 import static org.elasticsearch.test.hamcrest.ElasticsearchAssertions.assertAcked;
 import static org.elasticsearch.test.hamcrest.ElasticsearchAssertions.assertSearchResponse;
 import static org.hamcrest.Matchers.containsString;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -202,6 +206,77 @@ public class IpRangeIT extends ESIntegTestCase {
         assertEquals("192.168.1.10", bucket3.getFrom());
         assertNull(bucket3.getTo());
         assertEquals(0, bucket3.getDocCount());
+    }
+
+    /**
+     * Make sure the `missing` option is supported for IP range aggregations
+     */
+    public void testMissing() throws Exception {
+        assertAcked(prepareCreate("idx_missing")
+                .addMapping("type", "ip", "type=ip"));
+        List<IndexRequestBuilder> builders = new ArrayList<>();
+        int numDocs = randomIntBetween(10, 20);
+        int numDocsMissing = randomIntBetween(1, numDocs - 1);
+        for(int i = 0; i < numDocs; i++) {
+            builders.add(client().prepareIndex("idx_missing", "type", "" + i).setSource(jsonBuilder()
+                .startObject()
+                .field("ip", "192.168.1."+i)
+                .endObject()));
+        }
+        for(int i = numDocs; i < numDocs + numDocsMissing; i++){
+            builders.add(client().prepareIndex("idx_missing", "type", ""+i).setSource(jsonBuilder()
+                .startObject()
+                .endObject()));
+        }
+        indexRandom(true, builders);
+        ensureSearchable();
+
+        SearchResponse rsp = client().prepareSearch("idx_missing").addAggregation(
+            AggregationBuilders.ipRange("range")
+                .field("ip")
+                .addUnboundedTo("192.168.1.0")
+                .addRange("192.168.1.0", "192.168.1.10")
+                .addUnboundedFrom("192.168.1.10"))
+            .addAggregation(
+                AggregationBuilders.ipRange("range_missing")
+                    .missing("192.168.1.11")
+                    .field("ip")
+                    .addUnboundedTo("192.168.1.0")
+                    .addRange("192.168.1.0", "192.168.1.10")
+                    .addUnboundedFrom("192.168.1.10")).get();
+        assertSearchResponse(rsp);
+        Range range = rsp.getAggregations().get("range");
+        assertEquals(3, range.getBuckets().size());
+
+        Range rangeMissing = rsp.getAggregations().get("range_missing");
+        assertEquals(3, rangeMissing.getBuckets().size());
+
+        Range.Bucket bucket1 = range.getBuckets().get(0);
+        assertNull(bucket1.getFrom());
+        assertEquals("192.168.1.0", bucket1.getTo());
+
+        Range.Bucket bucket1Missing = rangeMissing.getBuckets().get(0);
+        assertNull(bucket1Missing.getFrom());
+        assertEquals("192.168.1.0", bucket1Missing.getTo());
+        assertEquals(bucket1.getDocCount(), bucket1Missing.getDocCount());
+
+        Range.Bucket bucket2 = range.getBuckets().get(1);
+        assertEquals("192.168.1.0", bucket2.getFrom());
+        assertEquals("192.168.1.10", bucket2.getTo());
+
+        Range.Bucket bucket2Missing = rangeMissing.getBuckets().get(1);
+        assertEquals("192.168.1.0", bucket2Missing.getFrom());
+        assertEquals("192.168.1.10", bucket2Missing.getTo());
+        assertEquals(bucket2.getDocCount(), bucket2Missing.getDocCount());
+
+        Range.Bucket bucket3 = range.getBuckets().get(2);
+        assertEquals("192.168.1.10", bucket3.getFrom());
+        assertNull(bucket3.getTo());
+
+        Range.Bucket bucket3Missing = rangeMissing.getBuckets().get(2);
+        assertEquals("192.168.1.10", bucket3Missing.getFrom());
+        assertNull(bucket3Missing.getTo());
+        assertEquals(bucket3.getDocCount() + numDocsMissing, bucket3Missing.getDocCount());
     }
 
     public void testRejectsScript() {

@@ -22,6 +22,7 @@ package org.elasticsearch.index.query;
 import org.apache.lucene.search.FuzzyQuery;
 import org.apache.lucene.search.Query;
 import org.elasticsearch.ElasticsearchParseException;
+import org.elasticsearch.Version;
 import org.elasticsearch.common.ParseField;
 import org.elasticsearch.common.ParsingException;
 import org.elasticsearch.common.Strings;
@@ -55,12 +56,14 @@ public class MultiMatchQueryBuilder extends AbstractQueryBuilder<MultiMatchQuery
     public static final int DEFAULT_PHRASE_SLOP = MatchQuery.DEFAULT_PHRASE_SLOP;
     public static final int DEFAULT_PREFIX_LENGTH = FuzzyQuery.defaultPrefixLength;
     public static final int DEFAULT_MAX_EXPANSIONS = FuzzyQuery.defaultMaxExpansions;
+    public static final boolean DEFAULT_FUZZY_TRANSPOSITIONS = FuzzyQuery.defaultTranspositions;
     public static final boolean DEFAULT_LENIENCY = MatchQuery.DEFAULT_LENIENCY;
     public static final MatchQuery.ZeroTermsQuery DEFAULT_ZERO_TERMS_QUERY = MatchQuery.DEFAULT_ZERO_TERMS_QUERY;
 
     private static final ParseField SLOP_FIELD = new ParseField("slop", "phrase_slop");
     private static final ParseField ZERO_TERMS_QUERY_FIELD = new ParseField("zero_terms_query");
     private static final ParseField LENIENT_FIELD = new ParseField("lenient");
+    private static final ParseField FUZZY_TRANSPOSITIONS_FIELD = new ParseField("fuzzy_transpositions");
     private static final ParseField CUTOFF_FREQUENCY_FIELD = new ParseField("cutoff_frequency");
     private static final ParseField TIE_BREAKER_FIELD = new ParseField("tie_breaker");
     private static final ParseField USE_DIS_MAX_FIELD = new ParseField("use_dis_max");
@@ -83,6 +86,7 @@ public class MultiMatchQueryBuilder extends AbstractQueryBuilder<MultiMatchQuery
     private Fuzziness fuzziness;
     private int prefixLength = DEFAULT_PREFIX_LENGTH;
     private int maxExpansions = DEFAULT_MAX_EXPANSIONS;
+    private boolean fuzzyTranspositions = DEFAULT_FUZZY_TRANSPOSITIONS;
     private String minimumShouldMatch;
     private String fuzzyRewrite = null;
     private Boolean useDisMax;
@@ -213,6 +217,9 @@ public class MultiMatchQueryBuilder extends AbstractQueryBuilder<MultiMatchQuery
         fuzziness = in.readOptionalWriteable(Fuzziness::new);
         prefixLength = in.readVInt();
         maxExpansions = in.readVInt();
+        if (in.getVersion().onOrAfter(Version.V_5_4_0_UNRELEASED)) {
+            fuzzyTranspositions = in.readBoolean();
+        }
         minimumShouldMatch = in.readOptionalString();
         fuzzyRewrite = in.readOptionalString();
         useDisMax = in.readOptionalBoolean();
@@ -237,6 +244,9 @@ public class MultiMatchQueryBuilder extends AbstractQueryBuilder<MultiMatchQuery
         out.writeOptionalWriteable(fuzziness);
         out.writeVInt(prefixLength);
         out.writeVInt(maxExpansions);
+        if (out.getVersion().onOrAfter(Version.V_5_4_0_UNRELEASED)) {
+            out.writeBoolean(fuzzyTranspositions);
+        }
         out.writeOptionalString(minimumShouldMatch);
         out.writeOptionalString(fuzzyRewrite);
         out.writeOptionalBoolean(useDisMax);
@@ -395,6 +405,17 @@ public class MultiMatchQueryBuilder extends AbstractQueryBuilder<MultiMatchQuery
         return maxExpansions;
     }
 
+    public MultiMatchQueryBuilder fuzzyTranspositions(boolean fuzzyTranspositions) {
+        this.fuzzyTranspositions = fuzzyTranspositions;
+        return this;
+    }
+
+    /** Gets the fuzzy query transposition setting. */
+    public boolean fuzzyTranspositions() {
+        return this.fuzzyTranspositions;
+    }
+
+
     public MultiMatchQueryBuilder minimumShouldMatch(String minimumShouldMatch) {
         this.minimumShouldMatch = minimumShouldMatch;
         return this;
@@ -539,6 +560,7 @@ public class MultiMatchQueryBuilder extends AbstractQueryBuilder<MultiMatchQuery
         if (fuzzyRewrite != null) {
             builder.field(FUZZY_REWRITE_FIELD.getPreferredName(), fuzzyRewrite);
         }
+        builder.field(FUZZY_TRANSPOSITIONS_FIELD.getPreferredName(), fuzzyTranspositions);
         if (useDisMax != null) {
             builder.field(USE_DIS_MAX_FIELD.getPreferredName(), useDisMax);
         }
@@ -567,6 +589,7 @@ public class MultiMatchQueryBuilder extends AbstractQueryBuilder<MultiMatchQuery
         int maxExpansions = DEFAULT_MAX_EXPANSIONS;
         Operator operator = DEFAULT_OPERATOR;
         String minimumShouldMatch = null;
+        boolean fuzzyTranspositions = FuzzyQuery.defaultTranspositions;
         String fuzzyRewrite = null;
         Boolean useDisMax = null;
         Float tieBreaker = null;
@@ -616,6 +639,8 @@ public class MultiMatchQueryBuilder extends AbstractQueryBuilder<MultiMatchQuery
                     minimumShouldMatch = parser.textOrNull();
                 } else if (FUZZY_REWRITE_FIELD.match(currentFieldName)) {
                     fuzzyRewrite = parser.textOrNull();
+                } else if (FUZZY_TRANSPOSITIONS_FIELD.match(currentFieldName)){
+                    fuzzyTranspositions = parser.booleanValue();
                 } else if (USE_DIS_MAX_FIELD.match(currentFieldName)) {
                     useDisMax = parser.booleanValue();
                 } else if (TIE_BREAKER_FIELD.match(currentFieldName)) {
@@ -668,6 +693,7 @@ public class MultiMatchQueryBuilder extends AbstractQueryBuilder<MultiMatchQuery
                 .useDisMax(useDisMax)
                 .lenient(lenient)
                 .maxExpansions(maxExpansions)
+                .fuzzyTranspositions(fuzzyTranspositions)
                 .minimumShouldMatch(minimumShouldMatch)
                 .operator(operator)
                 .prefixLength(prefixLength)
@@ -718,6 +744,7 @@ public class MultiMatchQueryBuilder extends AbstractQueryBuilder<MultiMatchQuery
         multiMatchQuery.setFuzzyPrefixLength(prefixLength);
         multiMatchQuery.setMaxExpansions(maxExpansions);
         multiMatchQuery.setOccur(operator.toBooleanClauseOccur());
+        multiMatchQuery.setTranspositions(fuzzyTranspositions);
         if (fuzzyRewrite != null) {
             multiMatchQuery.setFuzzyRewriteMethod(QueryParsers.parseRewriteMethod(fuzzyRewrite, null));
         }
@@ -766,7 +793,7 @@ public class MultiMatchQueryBuilder extends AbstractQueryBuilder<MultiMatchQuery
     protected int doHashCode() {
         return Objects.hash(value, fieldsBoosts, type, operator, analyzer, slop, fuzziness,
                 prefixLength, maxExpansions, minimumShouldMatch, fuzzyRewrite, useDisMax, tieBreaker, lenient,
-                cutoffFrequency, zeroTermsQuery);
+                cutoffFrequency, zeroTermsQuery, fuzzyTranspositions);
     }
 
     @Override
@@ -780,6 +807,7 @@ public class MultiMatchQueryBuilder extends AbstractQueryBuilder<MultiMatchQuery
                 Objects.equals(fuzziness, other.fuzziness) &&
                 Objects.equals(prefixLength, other.prefixLength) &&
                 Objects.equals(maxExpansions, other.maxExpansions) &&
+                Objects.equals(fuzzyTranspositions, other.fuzzyTranspositions) &&
                 Objects.equals(minimumShouldMatch, other.minimumShouldMatch) &&
                 Objects.equals(fuzzyRewrite, other.fuzzyRewrite) &&
                 Objects.equals(useDisMax, other.useDisMax) &&

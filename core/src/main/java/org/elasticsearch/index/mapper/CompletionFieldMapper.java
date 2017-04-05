@@ -105,6 +105,8 @@ public class CompletionFieldMapper extends FieldMapper implements ArrayValueMapp
         public static final String CONTENT_FIELD_NAME_INPUT = "input";
         public static final String CONTENT_FIELD_NAME_WEIGHT = "weight";
         public static final String CONTENT_FIELD_NAME_CONTEXTS = "contexts";
+        //illegal field names
+        public static final String MULTI_FIELD_NAME = "fields";
     }
 
     public static final Set<String> ALLOWED_CONTENT_FIELD_NAMES = Sets.newHashSet(Fields.CONTENT_FIELD_NAME_INPUT,
@@ -142,8 +144,8 @@ public class CompletionFieldMapper extends FieldMapper implements ArrayValueMapp
                 } else if (Fields.CONTEXTS.match(fieldName)) {
                     builder.contextMappings(ContextMappings.load(fieldNode, parserContext.indexVersionCreated()));
                     iterator.remove();
-                } else if (parseMultiField(builder, name, parserContext, fieldName, fieldNode)) {
-                    iterator.remove();
+                } else if (fieldName.equals(Fields.MULTI_FIELD_NAME)) {
+                    throw new MapperParsingException("Multi-fields [" + fieldName + "] are not supported for completion field [" + name + "]");
                 }
             }
 

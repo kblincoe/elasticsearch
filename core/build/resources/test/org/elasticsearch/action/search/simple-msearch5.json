@@ -1,0 +1,2 @@
+{"index":"test", "ignore_unavailable" : true, "expand_wildcards" : "open,closed"}}
+{"query" : {"match_all" :{}}}

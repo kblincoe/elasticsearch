@@ -20,6 +20,7 @@ package org.elasticsearch.search.aggregations.bucket;
 
 import com.carrotsearch.hppc.LongHashSet;
 import org.elasticsearch.action.index.IndexRequestBuilder;
+import org.elasticsearch.action.search.SearchPhaseExecutionException;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -34,6 +35,7 @@ import org.elasticsearch.search.aggregations.metrics.max.Max;
 import org.elasticsearch.search.aggregations.metrics.stats.Stats;
 import org.elasticsearch.search.aggregations.metrics.sum.Sum;
 import org.elasticsearch.test.ESIntegTestCase;
+import org.elasticsearch.transport.RemoteTransportException;
 import org.hamcrest.Matchers;
 
 import java.util.ArrayList;
@@ -169,6 +171,45 @@ public class HistogramIT extends ESIntegTestCase {
             assertThat(((Number) bucket.getKey()).longValue(), equalTo((long) i * interval));
             assertThat(bucket.getDocCount(), equalTo(valueCounts[i]));
         }
+    }
+
+    public void testHistogramDateIntervals(){
+        SearchResponse response = client().prepareSearch("idx")
+            .addAggregation(histogram("histo").field(SINGLE_VALUED_FIELD_NAME).interval(1d))
+            .execute().actionGet();
+
+        assertSearchResponse(response);
+
+        Histogram histo = response.getAggregations().get("histo");
+        assertThat(histo, notNullValue());
+        assertThat(histo.getName(), equalTo("histo"));
+        List<? extends Bucket> buckets = histo.getBuckets();
+
+        assertThat(buckets.size(), equalTo(numDocs));
+    }
+
+
+    public void testDefaultHistogramInterval() throws Exception{
+        try{
+            SearchResponse response = client().prepareSearch("idx")
+                .addAggregation(histogram("histo").field(SINGLE_VALUED_FIELD_NAME))
+                .execute()
+                .actionGet();
+
+            assertSearchResponse(response);
+
+            Histogram histo = response.getAggregations().get("histo");
+            assertThat(histo, notNullValue());
+            assertThat(histo.getName(), equalTo("histo"));
+            List<? extends Bucket> buckets = histo.getBuckets();
+            assertThat(buckets.size(), equalTo(numValueBuckets));
+
+            assertThat(buckets.size(), equalTo(numDocs));
+        fail();
+    } catch (SearchPhaseExecutionException e) {
+        assertThat(e.toString(), containsString("[interval must be positive, got: 0.0]"));
+    }
+
     }
 
     public void singleValuedField_withOffset() throws Exception {
@@ -974,6 +1015,16 @@ public class HistogramIT extends ESIntegTestCase {
             fail();
         } catch (IllegalArgumentException e) {
             assertThat(e.toString(), containsString("[interval] must be >0 for histogram aggregation [histo]"));
+        }
+    }
+
+    public void testExeptionOnNegativerDocCount() {
+        try {
+            client().prepareSearch("empty_bucket_idx")
+                .addAggregation(histogram("histo").field(SINGLE_VALUED_FIELD_NAME).interval(1).minDocCount(-1)).execute().actionGet();
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertThat(e.toString(), containsString("[minDocCount] must be greater than or equal to 0. Found [-1] in [histo]"));
         }
     }
 

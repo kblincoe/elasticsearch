@@ -77,6 +77,7 @@ public class QueryStringQueryBuilder extends AbstractQueryBuilder<QueryStringQue
     public static final boolean DEFAULT_USE_DIS_MAX = true;
     public static final int DEFAULT_FUZZY_PREFIX_LENGTH = FuzzyQuery.defaultPrefixLength;
     public static final int DEFAULT_FUZZY_MAX_EXPANSIONS = FuzzyQuery.defaultMaxExpansions;
+    public static final boolean DEFAULT_FUZZY_TRANSPOSITIONS = FuzzyQuery.defaultTranspositions;
     public static final int DEFAULT_PHRASE_SLOP = 0;
     public static final float DEFAULT_TIE_BREAKER = 0.0f;
     public static final Fuzziness DEFAULT_FUZZINESS = Fuzziness.AUTO;
@@ -99,6 +100,7 @@ public class QueryStringQueryBuilder extends AbstractQueryBuilder<QueryStringQue
     private static final ParseField USE_DIS_MAX_FIELD = new ParseField("use_dis_max");
     private static final ParseField FUZZY_PREFIX_LENGTH_FIELD = new ParseField("fuzzy_prefix_length");
     private static final ParseField FUZZY_MAX_EXPANSIONS_FIELD = new ParseField("fuzzy_max_expansions");
+    private static final ParseField FUZZY_TRANSPOSITIONS_FIELD = new ParseField("fuzzy_transpositions");
     private static final ParseField FUZZY_REWRITE_FIELD = new ParseField("fuzzy_rewrite");
     private static final ParseField PHRASE_SLOP_FIELD = new ParseField("phrase_slop");
     private static final ParseField TIE_BREAKER_FIELD = new ParseField("tie_breaker");
@@ -162,6 +164,8 @@ public class QueryStringQueryBuilder extends AbstractQueryBuilder<QueryStringQue
 
     private int fuzzyMaxExpansions = DEFAULT_FUZZY_MAX_EXPANSIONS;
 
+    private boolean fuzzyTranspositions = DEFAULT_FUZZY_TRANSPOSITIONS;
+
     private String rewrite;
 
     private String fuzzyRewrite;
@@ -222,6 +226,9 @@ public class QueryStringQueryBuilder extends AbstractQueryBuilder<QueryStringQue
         fuzziness = new Fuzziness(in);
         fuzzyPrefixLength = in.readVInt();
         fuzzyMaxExpansions = in.readVInt();
+        if (in.getVersion().onOrAfter(Version.V_5_4_0_UNRELEASED)) {
+            fuzzyTranspositions = in.readBoolean();
+        }
         fuzzyRewrite = in.readOptionalString();
         phraseSlop = in.readVInt();
         useDisMax = in.readBoolean();
@@ -266,6 +273,9 @@ public class QueryStringQueryBuilder extends AbstractQueryBuilder<QueryStringQue
         this.fuzziness.writeTo(out);
         out.writeVInt(this.fuzzyPrefixLength);
         out.writeVInt(this.fuzzyMaxExpansions);
+        if (out.getVersion().onOrAfter(Version.V_5_4_0_UNRELEASED)) {
+            out.writeBoolean(this.fuzzyTranspositions);
+        }
         out.writeOptionalString(this.fuzzyRewrite);
         out.writeVInt(this.phraseSlop);
         out.writeBoolean(this.useDisMax);
@@ -503,6 +513,14 @@ public class QueryStringQueryBuilder extends AbstractQueryBuilder<QueryStringQue
         return this;
     }
 
+    public boolean fuzzyTranspositions() {
+        return this.fuzzyTranspositions;
+    }
+
+    public QueryStringQueryBuilder fuzzyTranspositions(boolean fuzzyTranspositions) {
+        this.fuzzyTranspositions = fuzzyTranspositions;
+        return this;
+    }
     public String fuzzyRewrite() {
         return fuzzyRewrite;
     }
@@ -652,6 +670,7 @@ public class QueryStringQueryBuilder extends AbstractQueryBuilder<QueryStringQue
         this.fuzziness.toXContent(builder, params);
         builder.field(FUZZY_PREFIX_LENGTH_FIELD.getPreferredName(), this.fuzzyPrefixLength);
         builder.field(FUZZY_MAX_EXPANSIONS_FIELD.getPreferredName(), this.fuzzyMaxExpansions);
+        builder.field(FUZZY_TRANSPOSITIONS_FIELD.getPreferredName(), fuzzyTranspositions);
         if (this.fuzzyRewrite != null) {
             builder.field(FUZZY_REWRITE_FIELD.getPreferredName(), this.fuzzyRewrite);
         }
@@ -700,6 +719,7 @@ public class QueryStringQueryBuilder extends AbstractQueryBuilder<QueryStringQue
         boolean useDisMax = QueryStringQueryBuilder.DEFAULT_USE_DIS_MAX;
         int fuzzyPrefixLength = QueryStringQueryBuilder.DEFAULT_FUZZY_PREFIX_LENGTH;
         int fuzzyMaxExpansions = QueryStringQueryBuilder.DEFAULT_FUZZY_MAX_EXPANSIONS;
+        boolean fuzzyTranspositions = FuzzyQuery.defaultTranspositions;
         int phraseSlop = QueryStringQueryBuilder.DEFAULT_PHRASE_SLOP;
         float tieBreaker = QueryStringQueryBuilder.DEFAULT_TIE_BREAKER;
         Boolean analyzeWildcard = null;
@@ -771,6 +791,8 @@ public class QueryStringQueryBuilder extends AbstractQueryBuilder<QueryStringQue
                     fuzzyPrefixLength = parser.intValue();
                 } else if (FUZZY_MAX_EXPANSIONS_FIELD.match(currentFieldName)) {
                     fuzzyMaxExpansions = parser.intValue();
+                } else if (FUZZY_TRANSPOSITIONS_FIELD.match(currentFieldName)) {
+                    fuzzyTranspositions = parser.booleanValue();
                 } else if (FUZZY_REWRITE_FIELD.match(currentFieldName)) {
                     fuzzyRewrite = parser.textOrNull();
                 } else if (PHRASE_SLOP_FIELD.match(currentFieldName)) {
@@ -841,6 +863,7 @@ public class QueryStringQueryBuilder extends AbstractQueryBuilder<QueryStringQue
         queryStringQuery.useDisMax(useDisMax);
         queryStringQuery.fuzzyPrefixLength(fuzzyPrefixLength);
         queryStringQuery.fuzzyMaxExpansions(fuzzyMaxExpansions);
+        queryStringQuery.fuzzyTranspositions(fuzzyTranspositions);
         queryStringQuery.fuzzyRewrite(fuzzyRewrite);
         queryStringQuery.phraseSlop(phraseSlop);
         queryStringQuery.fuzziness(fuzziness);
@@ -879,6 +902,7 @@ public class QueryStringQueryBuilder extends AbstractQueryBuilder<QueryStringQue
                 Objects.equals(fuzziness, other.fuzziness) &&
                 Objects.equals(fuzzyPrefixLength, other.fuzzyPrefixLength) &&
                 Objects.equals(fuzzyMaxExpansions, other.fuzzyMaxExpansions) &&
+                Objects.equals(fuzzyTranspositions, other.fuzzyTranspositions) &&
                 Objects.equals(fuzzyRewrite, other.fuzzyRewrite) &&
                 Objects.equals(phraseSlop, other.phraseSlop) &&
                 Objects.equals(useDisMax, other.useDisMax) &&
@@ -899,8 +923,8 @@ public class QueryStringQueryBuilder extends AbstractQueryBuilder<QueryStringQue
         return Objects.hash(queryString, defaultField, fieldsAndWeights, defaultOperator, analyzer, quoteAnalyzer,
                 quoteFieldSuffix, autoGeneratePhraseQueries, allowLeadingWildcard, analyzeWildcard,
                 enablePositionIncrements, fuzziness, fuzzyPrefixLength,
-                fuzzyMaxExpansions, fuzzyRewrite, phraseSlop, useDisMax, tieBreaker, rewrite, minimumShouldMatch, lenient,
-                timeZone == null ? 0 : timeZone.getID(), escape, maxDeterminizedStates, splitOnWhitespace, useAllFields);
+                fuzzyMaxExpansions, fuzzyTranspositions, fuzzyRewrite, phraseSlop, useDisMax, tieBreaker, rewrite, minimumShouldMatch,
+                lenient, timeZone == null ? 0 : timeZone.getID(), escape, maxDeterminizedStates, splitOnWhitespace, useAllFields);
     }
 
     /**
@@ -935,7 +959,7 @@ public class QueryStringQueryBuilder extends AbstractQueryBuilder<QueryStringQue
         //e.g. field names get expanded to concrete names, defaults get resolved sometimes to settings values etc.
         if (splitOnWhitespace == false && autoGeneratePhraseQueries) {
             throw new IllegalArgumentException("it is disallowed to disable [split_on_whitespace] " +
-                "if [auto_generate_phrase_queries] is activated");
+                    "if [auto_generate_phrase_queries] is activated");
         }
         QueryParserSettings qpSettings;
         if (this.escape) {

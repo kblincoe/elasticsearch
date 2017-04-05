@@ -58,4 +58,9 @@ public class MultiSearchTemplateRequestBuilder
         request().indicesOptions(indicesOptions);
         return this;
     }
+
+    public MultiSearchTemplateRequestBuilder setMaxConcurrentSearches(int maxConcurrentSearches) {
+        request().setMaxConcurrentSearches(maxConcurrentSearches);
+        return this;
+    }
 }

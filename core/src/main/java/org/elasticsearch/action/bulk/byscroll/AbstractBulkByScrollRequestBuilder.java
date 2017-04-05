@@ -94,7 +94,7 @@ public abstract class AbstractBulkByScrollRequestBuilder<
      * Timeout to wait for the shards on to be available for each bulk request.
      */
     public Self timeout(TimeValue timeout) {
-        request.setTimeout(timeout);
+        request.setShardTimeout(timeout);
         return self();
     }
 

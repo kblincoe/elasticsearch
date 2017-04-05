@@ -38,7 +38,19 @@ public class DocumentMapperParserTests extends ESSingleNodeTestCase {
         DocumentMapper mapper = parser.parse("type", new CompressedXContent(mapping));
         assertThat(mapper.type(), equalTo("type"));
     }
-
+    
+    public void testInvalidFiledName() throws Exception {
+        IndexService indexService = createIndex("test");
+        DocumentMapperParser mapperParser = indexService.mapperService().documentMapperParser();
+        String mapping = XContentFactory.jsonBuilder().startObject().startObject("type").startObject("properties")
+                .startObject(".").field("type", "text").endObject()
+                .startObject("foo").field("type", "text").endObject()
+                .endObject().endObject().endObject().string();
+        MapperParsingException e = expectThrows(MapperParsingException.class,
+                () -> mapperParser.parse("type", new CompressedXContent(mapping)));
+        assertEquals("Invalid field name [.] for type [text]", e.getMessage());
+    }
+    
     public void testFieldNameWithDots() throws Exception {
         IndexService indexService = createIndex("test");
         DocumentMapperParser mapperParser = indexService.mapperService().documentMapperParser();

@@ -32,6 +32,7 @@ import org.elasticsearch.search.aggregations.bucket.MultiBucketsAggregation;
 import org.elasticsearch.search.aggregations.pipeline.PipelineAggregator;
 
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -339,11 +340,18 @@ public final class InternalHistogram extends InternalMultiBucketAggregation<Inte
     }
 
     private double nextKey(double key) {
-        return round(key + emptyBucketInfo.interval + emptyBucketInfo.interval / 2);
+        return round(key + emptyBucketInfo.interval + emptyBucketInfo.interval / 2, 2);
     }
 
     private double round(double key) {
         return Math.floor((key - emptyBucketInfo.offset) / emptyBucketInfo.interval) * emptyBucketInfo.interval + emptyBucketInfo.offset;
+    }
+
+    // Round with given number of decimal places
+    private double round(double value, int dp) {
+        String pattern = "####." + String.join("", Collections.nCopies(dp, "#"));
+        DecimalFormat formatter = new DecimalFormat(pattern);
+        return Double.valueOf(formatter.format(round(value)));
     }
 
     private void addEmptyBuckets(List<Bucket> list, ReduceContext reduceContext) {

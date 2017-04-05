@@ -34,6 +34,7 @@ import static org.elasticsearch.action.ValidateActions.addValidationError;
 
 public class MultiSearchTemplateRequest extends ActionRequest implements CompositeIndicesRequest {
 
+    private int maxConcurrentSearches = 0;
     private List<SearchTemplateRequest> requests = new ArrayList<>();
 
     private IndicesOptions indicesOptions = IndicesOptions.strictExpandOpenAndForbidClosed();
@@ -54,6 +55,18 @@ public class MultiSearchTemplateRequest extends ActionRequest implements Composi
     public MultiSearchTemplateRequest add(SearchTemplateRequest request) {
         requests.add(request);
         return this;
+    }
+
+    public int getMaxConcurrentSearches() {
+        return maxConcurrentSearches;
+    }
+
+    public void setMaxConcurrentSearches(int maxConcurrentSearches) {
+        if (maxConcurrentSearches < 1) {
+            throw new IllegalArgumentException("maxConcurrentSearches must be greater than zero");
+        }
+
+        this.maxConcurrentSearches = maxConcurrentSearches;
     }
 
     public List<SearchTemplateRequest> requests() {
@@ -90,12 +103,14 @@ public class MultiSearchTemplateRequest extends ActionRequest implements Composi
     @Override
     public void readFrom(StreamInput in) throws IOException {
         super.readFrom(in);
+        maxConcurrentSearches = in.readVInt();
         requests = in.readStreamableList(SearchTemplateRequest::new);
     }
 
     @Override
     public void writeTo(StreamOutput out) throws IOException {
         super.writeTo(out);
+        out.writeVInt(maxConcurrentSearches);
         out.writeStreamableList(requests);
     }
 }

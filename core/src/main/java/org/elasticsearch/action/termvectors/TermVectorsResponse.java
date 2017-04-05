@@ -36,14 +36,18 @@ import org.elasticsearch.common.io.stream.BytesStreamOutput;
 import org.elasticsearch.common.io.stream.StreamInput;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.unit.TimeValue;
+import org.elasticsearch.common.xcontent.ToXContent;
 import org.elasticsearch.common.xcontent.ToXContentObject;
 import org.elasticsearch.common.xcontent.XContentBuilder;
+import org.elasticsearch.common.xcontent.XContentFactory;
+import org.elasticsearch.common.xcontent.XContentHelper;
 import org.elasticsearch.search.dfs.AggregatedDfs;
 
 import java.io.IOException;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 
 public class TermVectorsResponse extends ActionResponse implements ToXContentObject {
@@ -167,6 +171,18 @@ public class TermVectorsResponse extends ActionResponse implements ToXContentObj
                 }
             };
         }
+    }
+
+    public Map<String, Object> sourceAsMap() throws IOException {
+        XContentBuilder builder = XContentFactory.jsonBuilder();
+        this.toXContent(builder, ToXContent.EMPTY_PARAMS);
+        return XContentHelper.convertToMap(builder.bytes(), false, null).v2();
+    }
+
+    public String sourceAsString() throws IOException {
+        XContentBuilder builder = XContentFactory.jsonBuilder();
+        this.toXContent(builder, ToXContent.EMPTY_PARAMS);
+        return builder.string();
     }
 
     @Override

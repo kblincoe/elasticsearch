@@ -32,10 +32,10 @@ import static org.hamcrest.Matchers.containsString;
 
 public class PatternCaptureTokenFilterTests extends ESTokenStreamTestCase {
     public void testPatternCaptureTokenFilter() throws Exception {
-        String json = "/org/elasticsearch/index/analysis/pattern_capture.json";
+        String yaml = "/org/elasticsearch/index/analysis/pattern_capture.yaml";
         Settings settings = Settings.builder()
                 .put(Environment.PATH_HOME_SETTING.getKey(), createTempDir())
-                .loadFromStream(json, getClass().getResourceAsStream(json))
+                .loadFromStream(yaml, getClass().getResourceAsStream(yaml))
                 .put(IndexMetaData.SETTING_VERSION_CREATED, Version.CURRENT)
                 .build();
 

@@ -115,6 +115,12 @@ public class RestMultiSearchAction extends BaseRestHandler {
         int from = 0;
         int length = data.length();
         byte marker = xContent.streamSeparator();
+
+        // Check for expected trailing marker
+        if (data.get(data.length() - 1) != marker) {
+            throw new ElasticsearchParseException("Malformed request; requires ending marker");
+        }
+
         while (true) {
             int nextMarker = findNextMarker(marker, from, data, length);
             if (nextMarker == -1) {

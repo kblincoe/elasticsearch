@@ -59,6 +59,7 @@ public abstract class DocWriteResponse extends ReplicationResponse implements Wr
     private static final String _SEQ_NO = "_seq_no";
     private static final String RESULT = "result";
     private static final String FORCED_REFRESH = "forced_refresh";
+    private static final String _REQUEST = "_request";
 
     /**
      * An enum that represents the the results of CRUD operations, primarily used to communicate the type of
@@ -114,11 +115,13 @@ public abstract class DocWriteResponse extends ReplicationResponse implements Wr
     private ShardId shardId;
     private String id;
     private String type;
+    private String request;
     private long version;
     private long seqNo;
     private boolean forcedRefresh;
-    protected Result result;
 
+    protected Result result;
+    // NORELEASE drop this constructor in favor of the new one below
     public DocWriteResponse(ShardId shardId, String type, String id, long seqNo, long version, Result result) {
         this.shardId = shardId;
         this.type = type;
@@ -128,6 +131,15 @@ public abstract class DocWriteResponse extends ReplicationResponse implements Wr
         this.result = result;
     }
 
+    public DocWriteResponse(ShardId shardId, String type, String id, String request, long seqNo, long version, Result result) {
+        this.shardId = shardId;
+        this.type = type;
+        this.id = id;
+        this.request = request;
+        this.seqNo = seqNo;
+        this.version = version;
+        this.result = result;
+    }
     // needed for deserialization
     protected DocWriteResponse() {
     }
@@ -287,6 +299,10 @@ public abstract class DocWriteResponse extends ReplicationResponse implements Wr
                 .field(_ID, id)
                 .field(_VERSION, version)
                 .field(RESULT, getResult().getLowercase());
+
+        if(request != null){
+          builder.field(_REQUEST, request);
+        }
         if (forcedRefresh) {
             builder.field(FORCED_REFRESH, true);
         }

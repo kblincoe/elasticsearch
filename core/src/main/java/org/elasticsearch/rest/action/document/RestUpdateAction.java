@@ -53,7 +53,7 @@ public class RestUpdateAction extends BaseRestHandler {
         UpdateRequest updateRequest = new UpdateRequest(request.param("index"), request.param("type"), request.param("id"));
         updateRequest.routing(request.param("routing"));
         updateRequest.parent(request.param("parent"));
-        updateRequest.timeout(request.paramAsTime("timeout", updateRequest.timeout()));
+        updateRequest.timeout(request.paramAsTime("shard_timeout", updateRequest.timeout()));
         updateRequest.setRefreshPolicy(request.param("refresh"));
         String waitForActiveShards = request.param("wait_for_active_shards");
         if (waitForActiveShards != null) {
@@ -82,6 +82,9 @@ public class RestUpdateAction extends BaseRestHandler {
             updateRequest.fromXContent(parser);
             IndexRequest upsertRequest = updateRequest.upsertRequest();
             if (upsertRequest != null) {
+                if (request.hasParam("version")) {
+                    throw new IllegalArgumentException("An upsert request cannot specify version.");
+                }
                 upsertRequest.routing(request.param("routing"));
                 upsertRequest.parent(request.param("parent"));
                 upsertRequest.version(RestActions.parseVersion(request));

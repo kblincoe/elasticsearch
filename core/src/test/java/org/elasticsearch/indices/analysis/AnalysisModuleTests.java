@@ -107,11 +107,6 @@ public class AnalysisModuleTests extends ModuleTestCase {
 
     }
 
-    public void testSimpleConfigurationJson() throws IOException {
-        Settings settings = loadFromClasspath("/org/elasticsearch/index/analysis/test1.json");
-        testSimpleConfiguration(settings);
-    }
-
     public void testSimpleConfigurationYaml() throws IOException {
         Settings settings = loadFromClasspath("/org/elasticsearch/index/analysis/test1.yml");
         testSimpleConfiguration(settings);

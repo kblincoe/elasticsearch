@@ -40,6 +40,7 @@ import org.elasticsearch.index.mapper.DateFieldMapper;
 import org.elasticsearch.index.mapper.MappedFieldType;
 import org.elasticsearch.index.mapper.MapperService;
 import org.elasticsearch.index.mapper.RangeFieldMapper;
+import org.elasticsearch.index.query.ExistsQueryBuilder;
 import org.joda.time.DateTimeZone;
 
 import java.io.IOException;
@@ -464,6 +465,9 @@ public class RangeQueryBuilder extends AbstractQueryBuilder<RangeQueryBuilder> i
 
     @Override
     protected QueryBuilder doRewrite(QueryRewriteContext queryRewriteContext) throws IOException {
+        if (from == null && to == null) {
+          return new ExistsQueryBuilder(fieldName);
+        }
         final MappedFieldType.Relation relation = getRelation(queryRewriteContext);
         switch (relation) {
         case DISJOINT:
@@ -492,7 +496,6 @@ public class RangeQueryBuilder extends AbstractQueryBuilder<RangeQueryBuilder> i
         MappedFieldType mapper = context.fieldMapper(this.fieldName);
         if (mapper != null) {
             if (mapper instanceof DateFieldMapper.DateFieldType) {
-
                 query = ((DateFieldMapper.DateFieldType) mapper).rangeQuery(from, to, includeLower, includeUpper,
                         timeZone, getForceDateParser(), context);
             } else if (mapper instanceof RangeFieldMapper.RangeFieldType && mapper.typeName() == RangeFieldMapper.RangeType.DATE.name) {

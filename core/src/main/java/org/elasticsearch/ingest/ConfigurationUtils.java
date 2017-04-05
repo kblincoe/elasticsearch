@@ -32,6 +32,7 @@ import java.util.Map;
 public final class ConfigurationUtils {
 
     public static final String TAG_KEY = "tag";
+    public static final String SCRIPT_KEY = "script";
 
     private ConfigurationUtils() {
     }
@@ -50,7 +51,8 @@ public final class ConfigurationUtils {
     /**
      * Returns and removes the specified property from the specified configuration map.
      *
-     * If the property value isn't of type string an {@link ElasticsearchParseException} is thrown.
+     * If the property value is of type integer, it will be coerced to a string
+     * If the property value isn't of type string or integer, an {@link ElasticsearchParseException} is thrown.
      * If the property is missing an {@link ElasticsearchParseException} is thrown
      */
     public static String readStringProperty(String processorType, String processorTag, Map<String, Object> configuration,
@@ -61,7 +63,8 @@ public final class ConfigurationUtils {
     /**
      * Returns and removes the specified property from the specified configuration map.
      *
-     * If the property value isn't of type string a {@link ElasticsearchParseException} is thrown.
+     * If the property value is of type integer, it will be coerced to a string
+     * If the property value isn't of type string or integer, a {@link ElasticsearchParseException} is thrown.
      * If the property is missing and no default value has been specified a {@link ElasticsearchParseException} is thrown
      */
     public static String readStringProperty(String processorType, String processorTag, Map<String, Object> configuration,
@@ -82,7 +85,10 @@ public final class ConfigurationUtils {
         if (value instanceof String) {
             return (String) value;
         }
-        throw newConfigurationException(processorType, processorTag, propertyName, "property isn't a string, but of type [" +
+        if (value instanceof Integer) {
+            return Integer.toString((Integer)value);
+        }
+        throw newConfigurationException(processorType, processorTag, propertyName, "property isn't a string or integer, but of type [" +
             value.getClass().getName() + "]");
     }
 
@@ -251,6 +257,12 @@ public final class ConfigurationUtils {
                 for (Map.Entry<String, Map<String, Object>> entry : processorConfigWithKey.entrySet()) {
                     try {
                         processors.add(readProcessor(processorFactories, entry.getKey(), entry.getValue()));
+                    } catch (ClassCastException ce) {
+                        if(entry.getKey().equals(SCRIPT_KEY)){
+                            exception = newConfigurationException(null, null, entry.getKey(), "Must be an Object. Short form scripting not allowed");
+                        } else {
+                            exception = ExceptionsHelper.useOrSuppress(exception, ce);
+                        }
                     } catch (Exception e) {
                         exception = ExceptionsHelper.useOrSuppress(exception, e);
                     }

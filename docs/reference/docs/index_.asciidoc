@@ -394,13 +394,13 @@ available when the index operation is executed. Some reasons for this
 might be that the primary shard is currently recovering from a gateway
 or undergoing relocation. By default, the index operation will wait on
 the primary shard to become available for up to 1 minute before failing
-and responding with an error. The `timeout` parameter can be used to
+and responding with an error. The `shard_timeout` parameter can be used to
 explicitly specify how long it waits. Here is an example of setting it
 to 5 minutes:
 
 [source,js]
 --------------------------------------------------
-PUT twitter/tweet/1?timeout=5m
+PUT twitter/tweet/1?shard_timeout=5m
 {
     "user" : "kimchy",
     "post_date" : "2009-11-15T14:12:12",
